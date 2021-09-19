@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
 
-const TeacherSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add a name'],
@@ -31,6 +31,10 @@ const TeacherSchema = new mongoose.Schema({
         minlength: 6,
         select: false
     },
+    role: {
+        type: String,
+        enum: ['student','teacher']
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     createdAt:{
@@ -42,6 +46,25 @@ const TeacherSchema = new mongoose.Schema({
         type: String,
         default: 'no-photo.jpg'
     },
+    review: [
+        {
+            text: String,
+            rate:{
+                type: Number,
+                min: 1,
+                max: 10
+            }
+        }
+    ],
+    enrolledSubjects:[
+        {
+            subject: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'Subject'
+            },
+            isPaid: Boolean
+        }
+    ]
 });
 
 // UserSchema.pre('save', async function(next){
@@ -79,4 +102,4 @@ const TeacherSchema = new mongoose.Schema({
 //     return await bcrypt.compare(enteredPwd, this.password);
 // }
 
-module.exports = mongoose.model('Teacher', TeacherSchema);
+module.exports = mongoose.model('User', UserSchema);

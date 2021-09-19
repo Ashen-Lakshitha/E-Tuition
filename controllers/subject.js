@@ -1,5 +1,5 @@
 const Subject = require('../models/Subject');
-const Teacher = require('../models/Teacher');
+const Teacher = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
 //GET get all subjects

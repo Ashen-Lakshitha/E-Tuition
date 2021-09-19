@@ -1,4 +1,4 @@
-const Teacher = require('../models/Teacher');
+const Teacher = require('../models/User');
 // const User = require('../models/Teacher');
 const ErrorResponse = require('../utils/errorResponse');
 
