@@ -17,8 +17,7 @@ connectDB();
 // const bootcamps = require('./routes/bootcamps');
 const subject = require('./routes/subject');
 // const auth = require('./routes/auth');
-const teacher = require('./routes/teacher');
-const student = require('./routes/student');
+const users = require('./routes/user');
 // const review = require('./routes/review');
 
 const app = express();
@@ -42,8 +41,7 @@ app.use(morgan('dev'));
 // app.use('/bootcamps', bootcamps);
 app.use('/subjects', subject);
 // app.use('/auth', auth);
-app.use('/teachers', teacher);
-app.use('/students', student);
+app.use('/users', users);
 // app.use('/review', review);
 
 // //errorHhandler middleware

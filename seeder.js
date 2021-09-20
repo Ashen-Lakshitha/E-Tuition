@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 //load models
 // const Bootcamp = require('./models/Bootcamp');
 const Subject = require('./models/Subject');
-const Teacher = require('./models/Teacher');
-const Student = require('./models/Student');
+const User = require('./models/User');
 // const Review = require('./models/Review');
 
 //connect database
@@ -23,7 +22,7 @@ const subjects = JSON.parse(
     fs.readFileSync(`${__dirname}/_data/subjects.json`,'utf-8')
 );
 
-const teachers = JSON.parse(
+const users = JSON.parse(
     fs.readFileSync(`${__dirname}/_data/teachers.json`,'utf-8')
 );
 
@@ -39,7 +38,7 @@ const students = JSON.parse(
 const importData = async () => {
     try {
         // await Bootcamp.create(bootcamps);
-        await Subject.create(subjects);
+        await User.create(users);
         // await Review.create(reviews);
         // await Teacher.create(teachers);
         // await Student.create(students);
