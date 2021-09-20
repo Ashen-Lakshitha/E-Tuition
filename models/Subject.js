@@ -22,7 +22,7 @@ const SubjectSchema = new mongoose.Schema({
     },
     teacher:{
         type: mongoose.Schema.ObjectId,
-        ref: 'Teacher',
+        ref: 'User',
         required: true
     }
 });

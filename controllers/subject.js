@@ -1,5 +1,5 @@
 const Subject = require('../models/Subject');
-const Teacher = require('../models/User');
+const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
 //GET get all subjects
@@ -11,7 +11,10 @@ exports.getSubjects = async (req,res,next)=>{
     try {
         let query;
         if(req.params.teacherid){
-            query = Subject.find({ teacher : req.params.teacherid});
+            query = Subject.find({ teacher : req.params.teacherid}).populate({
+                path: 'teacher',
+                select: 'name email phone'
+            });
         }
         else{
             query = Subject.find().populate({    //populate - nested data

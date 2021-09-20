@@ -27,7 +27,7 @@ const UserSchema = new mongoose.Schema({
     },
     school: {
         type: String,
-    },
+    }, 
     password: {
         type: String,
         required: [true, 'Please add a password'],

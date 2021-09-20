@@ -19,7 +19,7 @@ const router = express.Router();
 // const { protect, authorize } = require('../middleware/auth');
 
 //re-route
-router.use('/:teacherid/subjects', subjectRoute);
+router.use('/teachers/:teacherid/subjects', subjectRoute);
 
 router.get("/teachers", getTeachers);
 router.post("/teachers", createTeacher);

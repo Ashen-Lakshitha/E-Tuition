@@ -23,11 +23,7 @@ const subjects = JSON.parse(
 );
 
 const users = JSON.parse(
-    fs.readFileSync(`${__dirname}/_data/teachers.json`,'utf-8')
-);
-
-const students = JSON.parse(
-    fs.readFileSync(`${__dirname}/_data/students.json`,'utf-8')
+    fs.readFileSync(`${__dirname}/_data/users.json`,'utf-8')
 );
 
 // const reviews = JSON.parse(
