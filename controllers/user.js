@@ -6,7 +6,6 @@ const ErrorResponse = require('../utils/errorResponse');
 //Private only admin
 exports.getTeachers = async (req,res,next)=>{
     try {
-        console.log(req);
         const teachers = await User.find().where({role:'teacher'});
         res
             .status(200)
@@ -190,17 +189,56 @@ exports.deleteStudent = async (req,res,next)=>{
     };
 };
 
-//POST add review to the teacher
+//POST create review to the teacher
+//URL /teachers/:teacherid/reviews
 exports.addReview = async (req, res, next) => {
     try {
         const teacher = await User.findById(req.params.teacherid);
-        // console.log(req.body.text);
+
+        if(!teacher){
+            return next(new ErrorResponse(`Teacher not found id with ${req.params.teacherid}`, 404));
+        }
         await teacher.review.push(req.body);
         await teacher.save();
 
         res.status(200).json({
             success: true, 
             data: teacher
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+//PUT update review
+//URL /teachers/:teacherid/reviews/:reviewid
+exports.updateReview = async (req, res, next) => {
+    try {
+        const teacher = await User.findById(req.params.teacherid);
+        const review = teacher.review.id(req.params.reviewid);
+        review.set(req.body);
+        await teacher.save();
+
+        res.status(200).json({
+            success: true, 
+            data: teacher
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+//DELETE delete review
+//URL /teachers/:teacherid/reviews/:reviewid
+exports.deleteReview = async (req, res, next) => {
+    try {
+        const teacher = await User.findById(req.params.teacherid);
+        await teacher.review.remove(req.params.reviewid);
+        await teacher.save();
+
+        res.status(200).json({
+            success: true, 
+            data: teacher.review
         });
     } catch (error) {
         next(error);
