@@ -190,3 +190,18 @@ exports.deleteStudent = async (req,res,next)=>{
     };
 };
 
+exports.addReview = async (req, res, next) => {
+    try {
+        const teacher = await User.findById(req.params.teacherid);
+        // console.log(req.body.text);
+        await teacher.review.push(req.body);
+        await teacher.save();
+
+        res.status(200).json({
+            success: true, 
+            data: teacher
+        });
+    } catch (error) {
+        next(error);
+    }
+}

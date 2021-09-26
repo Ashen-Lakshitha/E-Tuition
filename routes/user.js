@@ -9,7 +9,8 @@ const {
     getStudent,
     createStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    addReview
 } = require('../controllers/user');
 
 //include other routes
@@ -23,13 +24,13 @@ router.use('/teachers/:teacherid/subjects', subjectRoute);
 
 router.get("/teachers", getTeachers);
 router.post("/teachers", createTeacher);
+router.post("/teachers/:teacherid/reviews", addReview);
 router.get('/teachers/:teacherid', getTeacher );
 router.put('/teachers/:teacherid', updateTeacher );
 router.delete('/teachers/:teacherid', deleteTeacher);
 
 router.get("/students", getStudents);
-router.post("/", createStudent);
-
+router.post("/students", createStudent);
 router.get('/students/:studentid', getStudent );
 router.put('/students/:studentid', updateStudent );
 router.delete('/students/:studentid', deleteStudent);
