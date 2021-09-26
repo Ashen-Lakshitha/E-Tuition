@@ -190,7 +190,6 @@ exports.deleteStudent = async (req,res,next)=>{
     };
 };
 
-//POST add review to the teacher
 exports.addReview = async (req, res, next) => {
     try {
         const teacher = await User.findById(req.params.teacherid);
