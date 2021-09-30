@@ -1,6 +1,7 @@
 const express = require('express');
 const {
     getSubjects, 
+    getSubject
 } = require('../controllers/subject');
 
 const router = express.Router({mergeParams: true});
@@ -12,9 +13,9 @@ router
     .get(getSubjects);
     // .post(protect, authorize('publisher', 'admin'), createCourse);
     
-// router
-//     .route('/:id')
-//     .get(getCourse)
+router
+    .route('/:subjectid')
+    .get(getSubject);
 //     .put(protect, authorize('publisher', 'admin'), updateCourse)
 //     .delete(protect, authorize('publisher', 'admin'), deleteCourse);
 

@@ -13,13 +13,14 @@ exports.getSubjects = async (req,res,next)=>{
         if(req.params.teacherid){
             query = Subject.find({ teacher : req.params.teacherid}).populate({
                 path: 'teacher',
-                select: 'name email phone'
+                select: 'name email phone review',
+                
             });
         }
         else{
             query = Subject.find().populate({    //populate - nested data
                 path: 'teacher',
-                select: 'name email phone '      //show only name and description
+                select: 'name email phone review '      //show only name and description
             });
         }
 
@@ -43,7 +44,7 @@ exports.getSubject = async (req,res,next)=>{
     try {
         const subject = await Subject.findById(req.params.subjectid).populate({    //populate - nested data
             path: 'teacher',
-            select: 'name email phone'      //show only name and description
+            select: 'name email phone review'      //show only name and description
         });
 
         if(!subject){
