@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 // const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/database');
-// const errorHandler = require('./middleware/error');
+const errorHandler = require('./middleware/error');
 
 // Load env vars
 dotenv.config({ path: './config/config.env' });
@@ -16,7 +16,7 @@ connectDB();
 //load routes
 // const bootcamps = require('./routes/bootcamps');
 const subject = require('./routes/subject');
-// const auth = require('./routes/auth');
+const auth = require('./routes/auth');
 const users = require('./routes/user');
 // const review = require('./routes/review');
 
@@ -40,11 +40,12 @@ app.use(morgan('dev'));
 //router middleware
 // app.use('/bootcamps', bootcamps);
 app.use('/subjects', subject);
-// app.use('/auth', auth);
+app.use('/auth', auth);
 app.use('/users', users);
 // app.use('/review', review);
 
-// //errorHhandler middleware
+//errorHhandler middleware
+app.use(errorHandler);
 
 //app.use(sghsjgdc);
 //app.use(sgfjgdf);

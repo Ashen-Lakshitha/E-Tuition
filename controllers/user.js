@@ -1,18 +1,20 @@
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
-//GET get all teachers
-//URL /teachers
-//Private only admin
-exports.getTeachers = async (req,res,next)=>{
+//GET get all users by role
+//URL /
+//Private admin only
+exports.getUsers = async (req,res,next)=>{
+
+    const role = 'teacher';
     try {
-        const teachers = await User.find().where({role:'teacher'});
+        const users = await User.find().where({role: role});
         res
             .status(200)
             .json({
                 success: true, 
-                count: teachers.length,
-                data: teachers
+                count: users.length,
+                data: users
             });
 
     } catch (error) {
@@ -20,20 +22,20 @@ exports.getTeachers = async (req,res,next)=>{
     }
 };
 
-//GET get single teacher
-//URL teachers/:teacherid
+//GET get single user
+//URL /:userid
 //Private admin only
-exports.getTeacher = async (req,res,next)=>{
+exports.getUser = async (req,res,next)=>{
     try {
-        const teacher = await User.findById(req.params.teacherid);
+        const user = await User.findById(req.params.userid);
 
-        if(!teacher){
-            return next(new ErrorResponse(`Teacher not found id with ${req.params.teacherid}`, 404));
+        if(!user){
+            return next(new ErrorResponse(`User not found id with ${req.params.userid}`, 404));
         }
 
         res.status(200).json({
             success: true, 
-            data: teacher
+            data: user
         });
 
     } catch (error) {
@@ -41,36 +43,19 @@ exports.getTeacher = async (req,res,next)=>{
     }
 };
 
-//POST create teacher
-//URL teachers
-//Private 
-exports.createTeacher = async (req,res,next)=>{
-    try {
-        const teacher = await User.create(req.body);
-
-        res.status(200).json({
-            success: true, 
-            data: teacher
-        });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-//PUT update teacher
-//URL teachers/:teacherid
+//PUT update user
+//URL /:userid
 //Private
-exports.updateTeacher = async (req,res,next)=>{
+exports.updateUser = async (req,res,next)=>{
     try {
-        const teacher = await User.findByIdAndUpdate(req.params.teacherid, req.body, {
+        const user = await User.findByIdAndUpdate(req.params.userid, req.body, {
             new: true,
             runValidators: true
         });
 
         res.status(200).json({
             success: true, 
-            data: teacher
+            data: user
         });
 
     } catch (error) {
@@ -78,12 +63,12 @@ exports.updateTeacher = async (req,res,next)=>{
     }
 };
 
-//DELETE delete teacher
-//URL teachers/:teacherid
+//DELETE delete user
+//URL /:userid
 //Private
-exports.deleteTeacher = async (req,res,next)=>{
+exports.deleteUser = async (req,res,next)=>{
     try {
-        const teacher = await User.findByIdAndDelete(req.params.teacherid);
+        const user = await User.findByIdAndDelete(req.params.userid);
 
         res.status(200).json({
             success: true, 
@@ -94,153 +79,3 @@ exports.deleteTeacher = async (req,res,next)=>{
         next(error);
     };
 };
-
-//GET get all students
-//URL /students
-//Private only admin
-exports.getStudents = async (req,res,next)=>{
-    try {
-        const students = await User.find().where({role:"student"});
-        res
-            .status(200)
-            .json({
-                success: true, 
-                count: students.length,
-                data: students
-            });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-//GET get single student
-//URL students/:studentid
-//Private admin only
-exports.getStudent = async (req,res,next)=>{
-    try {
-        const student = await User.findById(req.params.studentid);
-
-        if(!student){
-            return next(new ErrorResponse(`User not found id with ${req.params.studentid}`, 404));
-        }
-
-        res.status(200).json({
-            success: true, 
-            data: student
-        });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-//POST create student
-//URL /students
-//Private 
-exports.createStudent = async (req,res,next)=>{
-    try {
-        const student = await User.create(req.body);
-
-        res.status(200).json({
-            success: true, 
-            data: student
-        });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-//PUT update student
-//URL students/:studentid
-//Private
-exports.updateStudent = async (req,res,next)=>{
-    try {
-        const student = await User.findByIdAndUpdate(req.params.studentid, req.body, {
-            new: true,
-            runValidators: true
-        });
-
-        res.status(200).json({
-            success: true, 
-            data: student
-        });
-
-    } catch (error) {
-        next(error);
-    }
-};
-
-//DELETE delete student
-//URL students/:studentid
-//Private
-exports.deleteStudent = async (req,res,next)=>{
-    try {
-        const student = await User.findByIdAndDelete(req.params.Userid);
-
-        res.status(200).json({
-            success: true, 
-            data: {} 
-        });
-        
-    } catch (error) {
-        next(error);
-    };
-};
-
-//POST create review to the teacher
-//URL /teachers/:teacherid/reviews
-exports.addReview = async (req, res, next) => {
-    try {
-        const teacher = await User.findById(req.params.teacherid);
-
-        if(!teacher){
-            return next(new ErrorResponse(`Teacher not found id with ${req.params.teacherid}`, 404));
-        }
-        await teacher.review.push(req.body);
-        await teacher.save();
-
-        res.status(200).json({
-            success: true, 
-            data: teacher
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
-//PUT update review
-//URL /teachers/:teacherid/reviews/:reviewid
-exports.updateReview = async (req, res, next) => {
-    try {
-        const teacher = await User.findById(req.params.teacherid);
-        const review = teacher.review.id(req.params.reviewid);
-        review.set(req.body);
-        await teacher.save();
-
-        res.status(200).json({
-            success: true, 
-            data: teacher
-        });
-    } catch (error) {
-        next(error);
-    }
-}
-
-//DELETE delete review
-//URL /teachers/:teacherid/reviews/:reviewid
-exports.deleteReview = async (req, res, next) => {
-    try {
-        const teacher = await User.findById(req.params.teacherid);
-        await teacher.review.remove(req.params.reviewid);
-        await teacher.save();
-
-        res.status(200).json({
-            success: true, 
-            data: teacher.review
-        });
-    } catch (error) {
-        next(error);
-    }
-}

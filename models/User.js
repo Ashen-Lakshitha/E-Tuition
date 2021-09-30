@@ -1,6 +1,6 @@
 // const crypto = require('crypto');
 const mongoose = require('mongoose');
-// const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 // const jwt = require('jsonwebtoken');
 
 const UserSchema = new mongoose.Schema({
@@ -100,9 +100,9 @@ const UserSchema = new mongoose.Schema({
 //     return resetToken;
 // }
 
-// //match user entered password with hashed password
-// UserSchema.methods.matchPwd = async function(enteredPwd){
-//     return await bcrypt.compare(enteredPwd, this.password);
-// }
+//match user entered password with hashed password
+UserSchema.methods.matchPwd = async function(enteredPwd){
+    return await bcrypt.compare(enteredPwd, this.password);
+}
 
 module.exports = mongoose.model('User', UserSchema);
