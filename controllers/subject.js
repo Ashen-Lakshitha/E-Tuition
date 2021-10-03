@@ -5,13 +5,13 @@ const ErrorResponse = require('../utils/errorResponse');
 //GET get all subjects
 //URL /subjects
 //GET get all subjects for a teacher
-//URL /teachers/:teacherid/subjects
+//URL /users/:userid/subjects
 //Public
 exports.getSubjects = async (req,res,next)=>{
     try {
         let query;
-        if(req.params.teacherid){
-            query = Subject.find({ teacher : req.params.teacherid}).populate({
+        if(req.params.userid){
+            query = Subject.find({ teacher : req.params.userid}).populate({
                 path: 'teacher',
                 select: 'name email phone review',
                 
