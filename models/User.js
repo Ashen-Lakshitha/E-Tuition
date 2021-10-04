@@ -1,7 +1,7 @@
-// const crypto = require('crypto');
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -44,21 +44,10 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     },
-    averageRating: Number,
     photo: {
         type: String,
         default: 'no-photo.jpg'
     },
-    review: [
-        {
-            text: String,
-            rate:{
-                type: Number,
-                min: 1,
-                max: 10
-            }
-        }
-    ],
     enrolledSubjects:[
         {
             subject: {
@@ -70,39 +59,42 @@ const UserSchema = new mongoose.Schema({
     ]
 });
 
-// UserSchema.pre('save', async function(next){
-//     if(!this.isModified('password')){
-//         next();
-//     }
+//hash the password when create  or update a document
+UserSchema.pre('save', async function(next){
+    if(!this.isModified('password')){
+        next();
+    }
     
-//     const salt = await bcrypt.genSalt(10);
-//     this.password = await bcrypt.hash(this.password, salt);
-// });
-
-// UserSchema.methods.getSignedJwtToken = function(){
-//     return jwt.sign({id: this.id}, 'hshshshshshshahhaha', {
-//         expiresIn : '30d'
-//     });
-// }
-
-
-// //generate and hash password token
-// UserSchema.methods.getResetPasswordToken = function(){
-//     //generate token
-//     const resetToken = crypto.randomBytes(20).toString('hex');
-
-//     //hash token and set to resetPasswordToken field
-//     this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-//     //set expire
-//     this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
-
-//     return resetToken;
-// }
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+});
 
 //match user entered password with hashed password
 UserSchema.methods.matchPwd = async function(enteredPwd){
     return await bcrypt.compare(enteredPwd, this.password);
+};
+
+//create token when login/signup
+UserSchema.methods.getSignedJwtToken = function(){
+        return jwt.sign({id: this.id}, process.env.JWT_SECRET, {
+                expiresIn : '6h'
+    });
 }
+
+
+//generate and hash password token
+UserSchema.methods.getResetPasswordToken = function(){
+    //generate token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    //hash token and set to resetPasswordToken field
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    //set expire
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+}
+
 
 module.exports = mongoose.model('User', UserSchema);

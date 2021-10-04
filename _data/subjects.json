@@ -4,7 +4,29 @@
 		"subject": "Front End Web Development",
 		"description": "This course will provide you with all of the essentials to become a successful frontend web developer. You will learn to master HTML, CSS and front end JavaScript, along with tools like Git, VSCode and front end frameworks like Vue",
 		"fee": 8000,
-		"teacher": "5d7a514b5d2c12c7449be042"
+		"teacher": "5d7a514b5d2c12c7449be042",
+		"review":[
+			{
+				"text": "good teaching",
+				"rate": "5",
+				"_id": "61486c0930d0134080859c30"
+			},
+			{
+				"text": "good teaching",
+				"rate": "6",
+				"_id": "61486c0930d0134080859c31"
+			},
+			{
+				"text": "good teaching",
+				"rate": "8",
+				"_id": "61486c0930d0134080859c32"
+			},
+			{
+				"text": "super teaching",
+				"rate": "10",
+				"_id": "61486c0930d0134080859c33"
+			}
+		]
 	},
 	{
 		"_id": "5d725c84c4ded7bcb480eaa0",

@@ -24,7 +24,35 @@ const SubjectSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    averageRating: Number,
+    review: [
+        {
+            text: String,
+            rate:{
+                type: Number,
+                min: 1,
+                max: 10
+            },
+            student:{
+                type: mongoose.Schema.ObjectId,
+                ref: 'User',
+                required: true
+            }
+        }
+    ],
+    enrolledStudents:[
+        {
+            student: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'User'
+            },
+            isPaid: {
+                type : Boolean,
+                default: false
+            }
+        }
+    ]
 });
 
 
