@@ -6,29 +6,7 @@
 		"phone": "1234567890",
 		"address": "Colombo",
 		"password": "123456",
-		"role": "teacher",
-		"review":[
-			{
-				"text": "good teaching",
-				"rate": "5",
-				"_id": "61486c0930d0134080859c30"
-			},
-			{
-				"text": "good teaching",
-				"rate": "6",
-				"_id": "61486c0930d0134080859c31"
-			},
-			{
-				"text": "good teaching",
-				"rate": "8",
-				"_id": "61486c0930d0134080859c32"
-			},
-			{
-				"text": "super teaching",
-				"rate": "10",
-				"_id": "61486c0930d0134080859c33"
-			}
-		]
+		"role": "teacher"
 	},
 	{
 		"_id": "5d7a514b5d2c12c7449be042",

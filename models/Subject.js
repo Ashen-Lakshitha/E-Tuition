@@ -4,9 +4,22 @@ const SubjectSchema = new mongoose.Schema({
     subject: {
         type: String,
         required: [true, 'Please add a title'],
-        unique: true,
         trim: true,
         maxlength: 50
+    },
+    subtopic: {
+        type: String,
+        trim : true
+    },
+    type:{
+        type: String,
+        enum:[
+            "mass class",
+            "individual class",
+            "group class",
+            "revision",
+            "paper class"
+        ]
     },
     description: {
         type: String,
@@ -24,7 +37,39 @@ const SubjectSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    averageRating: Number,
+    review: [
+        {
+            text: String,
+            rate:{
+                type: Number,
+                min: 1,
+                max: 10
+            },
+            student:{
+                type: mongoose.Schema.ObjectId,
+                ref: 'User',
+                required: true
+            }
+        }
+    ],
+    enrolledStudents:[
+        {
+            student: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'User'
+            },
+            isPaid: {
+                type : Boolean,
+                default: false
+            },
+            isEnrolled:{
+                type : Boolean,
+                default: false
+            }
+        }
+    ]
 });
 
 

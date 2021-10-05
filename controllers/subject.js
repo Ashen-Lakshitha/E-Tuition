@@ -2,9 +2,9 @@ const Subject = require('../models/Subject');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
-//GET get all subjects
+//GET get all subjects(student home page)
 //URL /subjects
-//GET get all subjects for a teacher
+//GET get all subjects for a teacher(teacher home page)
 //URL /users/:userid/subjects
 //Public
 exports.getSubjects = async (req,res,next)=>{
@@ -13,14 +13,14 @@ exports.getSubjects = async (req,res,next)=>{
         if(req.params.userid){
             query = Subject.find({ teacher : req.params.userid}).populate({
                 path: 'teacher',
-                select: 'name email phone review',
+                select: 'name photo',
                 
             });
         }
         else{
             query = Subject.find().populate({    //populate - nested data
                 path: 'teacher',
-                select: 'name email phone review '      //show only name and description
+                select: 'name photo '      //show only name and description
             });
         }
 
@@ -37,14 +37,14 @@ exports.getSubjects = async (req,res,next)=>{
     }
 };
 
-//GET get single subject
+//GET get single subject(student class details)
 //URL subjects/:subjectid
 //Public
 exports.getSubject = async (req,res,next)=>{
     try {
         const subject = await Subject.findById(req.params.subjectid).populate({    //populate - nested data
             path: 'teacher',
-            select: 'name email phone review'      //show only name and description
+            select: 'name email phone about'      //show only name and description
         });
 
         if(!subject){
@@ -61,34 +61,12 @@ exports.getSubject = async (req,res,next)=>{
     }
 };
 
-//POST create subject
-//URL teachers/:teacherid/subject
-//Private
+//POST create subject(teacher add class)
+//URL /subjects
+//Private teacher only
 exports.createSubject = async (req,res,next)=>{
     try {
-        req.body.teacher = req.params.teacherid;
-        // req.body.user = req.user.id;
-
-        const teacher = await Teacher.findById(req.params.teacherid);
-
-        if(!teacher){
-            return next(
-                new ErrorResponse(
-                    `Teacher not found id with ${req.params.teacherid}`, 
-                    404
-                )
-            );
-        }
-
-        //make sure user is subject owner
-        // if(subject.user.toString() !== req.user.id && req.user.role !== 'admin'){
-        //     return next(
-        //         new ErrorResponse(
-        //             `User ${req.user.id} is not authorized to update a subject in bootcamp${bootcamp._id}`, 
-        //             401
-        //         )
-        //     );
-        // }
+        req.body.teacher = req.user.id;
 
         const subject = await Subject.create(req.body);
 
@@ -102,30 +80,32 @@ exports.createSubject = async (req,res,next)=>{
     }
 };
 
-//PUT update subject
+//PUT update subject(teacher update class)
 //URL subjects/:subjectid
-//Private
+//Private teacher only
 exports.updateSubject = async (req,res,next)=>{
     try {
-        const subject = await Subject.findByIdAndUpdate(req.params.subjectid, req.body, {
-            new: true,
-            runValidators: true
-        });
+        let subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
             return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
         }
-
-        //make sure user is subject owner
-        // if(subject.user.toString() !== req.user.id && req.user.role !== 'admin'){
-        //     return next(
-        //         new ErrorResponse(
-        //             `User ${req.user.id} is not authorized to update a subject in bootcamp${bootcamp._id}`, 
-        //             401
-        //         )
-        //     );
-        // }
-
+        
+        // make sure user is subject owner
+        if(subject.teacher.toString() !== req.user.id){
+            return next(
+                new ErrorResponse(
+                    `User ${req.user.id} is not authorized to update a class with id ${req.params.subjectid}`, 
+                    401
+                    )
+                    );
+                }
+                
+        subject = await Subject.findByIdAndUpdate(req.params.subjectid, req.body, {
+            new: true,
+            runValidators: true
+        });
+                
         res.status(200).json({
             success: true, 
             data: subject
@@ -136,35 +116,66 @@ exports.updateSubject = async (req,res,next)=>{
     }
 };
 
-// //DELETE delete course
-// //Private
-// exports.deleteCourse = async (req,res,next)=>{
-//     try {
-//         const course = await Course.findById(req.params.id);
+//PUT enroll to subject
+//URL subjects/:subjectid/enroll
+//Private students only
+exports.enrollStudent = async (req,res,next)=>{
+    try {
+        const subject = await Subject.findById(req.params.subjectid);
+        const user = await User.findById(req.user.id);
 
-//         if(!course){
-//             return next(new ErrorResponse(`Course not found id with ${req.params.id}`, 404));
-//         }
+        req.body.subject = req.params.subjectid;
+        req.body.student = req.user.id;
 
-//         //make sure user is course owner
-//         if(course.user.toString() !== req.user.id && req.user.role !== 'admin'){
-//             return next(
-//                 new ErrorResponse(
-//                     `User ${req.user.id} is not authorized to delete a course in bootcamp${bootcamp._id}`, 
-//                     401
-//                 )
-//             );
-//         }
-
-
-//         await course.remove();
-
-//         res.status(200).json({
-//             success: true, 
-//             data: {}
-//         });
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+        }
         
-//     } catch (error) {
-//         next(error);
-//     };
-// };
+        await user.enrolledSubjects.push(req.body);
+        await user.save();
+        
+        await subject.enrolledStudents.push(req.body);
+        await subject.save();
+
+        res.status(200).json({
+            success: true, 
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//DELETE delete class
+//URL /subjects/:subjectid
+//Private teacher only
+exports.deleteSubject = async (req,res,next)=>{
+    try {
+        const subject = await Subject.findById(req.params.subjectid);
+
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+        }
+
+        //make sure user is subject owner
+        if(subject.teacher.toString() !== req.user.id){
+            return next(
+                new ErrorResponse(
+                    `User ${req.user.id} is not authorized to delete a class`, 
+                    401
+                )
+            );
+        }
+
+
+        await subject.remove();
+
+        res.status(200).json({
+            success: true, 
+            data: {}
+        });
+        
+    } catch (error) {
+        next(error);
+    };
+};

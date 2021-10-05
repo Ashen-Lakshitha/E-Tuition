@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
+const Crypto = require('crypto');
 
 //POST create user
 //URL /auth/register
@@ -8,10 +9,11 @@ exports.createUser = async (req,res,next)=>{
     try {
         const user = await User.create(req.body);
 
-        res.status(200).json({
-            success: true, 
-            data: teacher
-        });
+        // res.status(200).json({
+        //     success: true, 
+        //     data: user
+        // });
+        sendTokenResponse(user, 200, res);
 
     } catch (error) {
         next(error);
@@ -41,23 +43,19 @@ exports.loginUser = async (req,res,next)=>{
         }
 
         //match password
-        // const isMatch = await user.matchPwd(password);
+        const isMatch = await user.matchPwd(password);
 
-        // if(!isMatch){
-        //     return next(new ErrorResponse('Invalid credentials', 401));
-        // }
-
-        if(user.password !== password){
+        if(!isMatch){
             return next(new ErrorResponse('Invalid Password', 401));
         }
 
-        res
-            .status(200)
-            .json({
-                success: true, 
-        });
-        // sendTokenResponse(user, 200, res); 
-        // console.log(req.cookies);
+        // res
+        //     .status(200)
+        //     .json({
+        //         success: true, 
+        // });
+        sendTokenResponse(user, 200, res); 
+
     } catch (error) {
         next(error);
     }
@@ -66,7 +64,23 @@ exports.loginUser = async (req,res,next)=>{
 //GET Logout user/clear token/cookie
 //URL /auth/logout
 //Private
-exports.logout = async (req,res,next)=>{};
+exports.logout = async (req,res,next)=>{
+    try {
+        res.cookie('token', 'none', {
+            expires: new Date(Date.now()+ 10*1000),
+            httpOnly: true
+        });
+        res
+            .status(200)
+            .json({
+                success: true, 
+                data: {}
+            });
+    
+    } catch (error) {
+        next(error);
+    }
+};
 
 //GET Get current logged in user
 //URL /auth/me
@@ -85,7 +99,6 @@ exports.updatePassword = async (req,res,next)=>{};
 exports.forgotPwd = async (req,res,next)=>{
 
     const user = await User.findOne({email: req.body.email});
-    // const user = await User.findOne({_id: req.user});
 
     if(!user){
         return next(new ErrorResponse('There is no user with that email'), 404);
@@ -94,8 +107,7 @@ exports.forgotPwd = async (req,res,next)=>{
     //get reset token
     const resetToken = user.getResetPasswordToken();
 
-    // console.log(resetToken);
-
+    //save the user
     await user.save({validateBeforeSave: false});
 
     //create reset url
@@ -111,8 +123,8 @@ exports.forgotPwd = async (req,res,next)=>{
         });
 
         res.status(200).json({success:true, data: 'Email sent'});
+
     } catch (error) {
-        console.log(error);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
 
@@ -152,3 +164,21 @@ exports.resetPassword = async (req,res,next)=>{
         next(error);
     }
 };
+
+const sendTokenResponse = (user, statusCode, res)=>{
+    //create token
+    const token = user.getSignedJwtToken();
+
+    const options = {
+        expires : new Date(Date.now() + 1000 * 60 * 60 * 6),
+        httpOnly: true,
+    }
+
+    res
+        .status(statusCode)
+        .cookie('token', token, options)
+        .json({
+            success: true, 
+            token
+        });
+}
