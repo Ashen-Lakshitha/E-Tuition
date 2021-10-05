@@ -12,7 +12,7 @@ const router = express.Router();
 const subjectRoute = require('./subject');
 
 //Security
-// const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 //re-route
 router.use('/:userid/subjects', subjectRoute);

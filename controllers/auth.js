@@ -64,7 +64,23 @@ exports.loginUser = async (req,res,next)=>{
 //GET Logout user/clear token/cookie
 //URL /auth/logout
 //Private
-exports.logout = async (req,res,next)=>{};
+exports.logout = async (req,res,next)=>{
+    try {
+        res.cookie('token', 'none', {
+            expires: new Date(Date.now()+ 10*1000),
+            httpOnly: true
+        });
+        res
+            .status(200)
+            .json({
+                success: true, 
+                data: {}
+            });
+    
+    } catch (error) {
+        next(error);
+    }
+};
 
 //GET Get current logged in user
 //URL /auth/me
