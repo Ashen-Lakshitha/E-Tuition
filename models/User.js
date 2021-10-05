@@ -54,9 +54,19 @@ const UserSchema = new mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: 'Subject'
             },
-            isPaid: Boolean
+            isPaid: {
+                type: Boolean,
+                default: false
+            },
+            isEnrolled: {
+                type: Boolean,
+                default: false
+            }
         }
-    ]
+    ],
+    aboutMe: String,
+    whatspp: String,
+    telegram: String
 });
 
 //hash the password when create  or update a document

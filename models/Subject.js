@@ -4,9 +4,22 @@ const SubjectSchema = new mongoose.Schema({
     subject: {
         type: String,
         required: [true, 'Please add a title'],
-        unique: true,
         trim: true,
         maxlength: 50
+    },
+    subtopic: {
+        type: String,
+        trim : true
+    },
+    type:{
+        type: String,
+        enum:[
+            "mass class",
+            "individual class",
+            "group class",
+            "revision",
+            "paper class"
+        ]
     },
     description: {
         type: String,
@@ -48,6 +61,10 @@ const SubjectSchema = new mongoose.Schema({
                 ref: 'User'
             },
             isPaid: {
+                type : Boolean,
+                default: false
+            },
+            isEnrolled:{
                 type : Boolean,
                 default: false
             }
