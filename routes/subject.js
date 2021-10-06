@@ -1,22 +1,30 @@
 const express = require('express');
 const {
     getSubjects, 
-    getSubject
+    getSubject,
+    createSubject,
+    updateSubject,
+    deleteSubject,
+    enrollStudent
 } = require('../controllers/subject');
 
 const router = express.Router({mergeParams: true});
 
-// const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 router
     .route('/')
-    .get(getSubjects);
-    // .post(protect, authorize('publisher', 'admin'), createCourse);
+    .get(getSubjects)
+    .post(protect, authorize('teacher'), createSubject);
     
 router
     .route('/:subjectid')
-    .get(getSubject);
-//     .put(protect, authorize('publisher', 'admin'), updateCourse)
-//     .delete(protect, authorize('publisher', 'admin'), deleteCourse);
+    .get(getSubject)
+    .put(protect, authorize('teacher'), updateSubject)
+    .delete(protect, authorize('teacher'), deleteSubject);
+
+router
+    .route('/:subjectid/enroll')
+    .put(protect, authorize('student'), enrollStudent);
 
 module.exports = router;
