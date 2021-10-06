@@ -85,13 +85,32 @@ exports.logout = async (req,res,next)=>{
 
 //GET Get current logged in user
 //URL /auth/me
-//Private
-exports.getMe = async (req,res,next)=>{};
+//Private only user
+exports.getMe = async (req,res,next)=>{
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+};
 
 //PUT Update password
 //URL /auth/updatepassword
-//Private
-exports.updatePassword = async (req,res,next)=>{};
+//Private only user
+exports.updatePassword = async (req,res,next)=>{
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check current password
+    if (!(await user.matchPassword(req.body.currentPassword))) {
+        return next(new ErrorResponse('Password is incorrect', 401));
+    }
+
+    user.password = req.body.newPassword;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+};
 
 
 //POST forgot pwd
@@ -132,13 +151,11 @@ exports.forgotPwd = async (req,res,next)=>{
     }
 };
 
-
 //PUT Reset password
-//URL /auth/reset
+//URL /auth/resetpassword
 //Public
-exports.resetCode = async (req,res,next)=>{
+exports.resetPassword = async (req,res,next)=>{
     try {
-        //get hashed token
         const code = toString(req.body.resetCode);
         const resetPasswordCode = Crypto.createHash('sha256').update(code).digest('hex');
         const user = await User.findOne({
@@ -149,29 +166,12 @@ exports.resetCode = async (req,res,next)=>{
         if(!user){
             return next(new ErrorResponse('Invalid code', 400));
         }
-
+        
+        user.password = req.body.password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
 
         await user.save({validateBeforeSave: false});
-
-        res.status(200).json({success:true, data: user}); 
-    
-    } catch (error) {
-        next(error);
-    }
-};
-
-//PUT Reset password
-//URL /auth/resetpassword/:userid
-//Public
-exports.resetPassword = async (req,res,next)=>{
-    try {
-        const user = await User.findByIdAndUpdate(req.params.userid, req.body, {
-            new: true,
-            runValidators: true
-        });
-        
         sendTokenResponse(user, 200, res); 
     
     } catch (error) {
