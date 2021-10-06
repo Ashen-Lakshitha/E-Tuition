@@ -6,7 +6,7 @@ const ErrorResponse = require('../utils/errorResponse');
 //Private admin only
 exports.getUsers = async (req,res,next)=>{
 
-    const role = 'teacher';
+    const role = 'student';
     try {
         const users = await User.find().where({role: role});
         res
