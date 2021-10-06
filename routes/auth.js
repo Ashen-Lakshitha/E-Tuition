@@ -4,6 +4,7 @@ const {
     loginUser, 
     getMe, 
     forgotPwd,
+    resetCode,
     resetPassword,
     updatePassword,
     logout
@@ -18,7 +19,8 @@ router.route('/login').post(loginUser);
 router.route('/logout').get(logout);
 router.route('/me').get(getMe);
 router.route('/forgotpwd').post(forgotPwd);
-router.route('/resetpassword/:resettoken').put(resetPassword);
+router.route('/reset').put(resetCode);
+router.route('/resetpassword/:userid').put(resetPassword);
 router.route('/updatepassword').put(protect, updatePassword);
 
 module.exports = router;
