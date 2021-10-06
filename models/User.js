@@ -83,17 +83,17 @@ UserSchema.methods.getSignedJwtToken = function(){
 
 
 //generate and hash password token
-UserSchema.methods.getResetPasswordToken = function(){
+UserSchema.methods.getResetPasswordCode = function(){
     //generate token
-    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetCode = (Math.floor(100000 + Math.random() * 900000)).toString();
 
     //hash token and set to resetPasswordToken field
-    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetCode).digest('hex');
 
     //set expire
     this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
-    return resetToken;
+    return resetCode;
 }
 
 
