@@ -23,7 +23,7 @@ exports.protect = async (req, res, next)=>{
             req.user = await User.findById(decode.id);
             next();
         } catch (error) {
-            return next(new ErrorResponse('Not authorized to access this route', 401));
+            return next(new ErrorResponse('Not authorized to access this routes', 401));
         }
     } catch (error) {
         next(error);
