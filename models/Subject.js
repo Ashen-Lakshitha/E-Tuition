@@ -66,7 +66,7 @@ const SubjectSchema = new mongoose.Schema({
             },
             isEnrolled:{
                 type : Boolean,
-                default: false
+                default: true
             }
         }
     ]

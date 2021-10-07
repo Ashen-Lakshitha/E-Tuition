@@ -6,9 +6,8 @@ const ErrorResponse = require('../utils/errorResponse');
 //Private admin only
 exports.getUsers = async (req,res,next)=>{
 
-    const role = 'student';
     try {
-        const users = await User.find().where({role: role});
+        const users = await User.find();
         res
             .status(200)
             .json({
@@ -44,11 +43,11 @@ exports.getUser = async (req,res,next)=>{
 };
 
 //PUT update user
-//URL /:userid
+//URL /
 //Private
 exports.updateUser = async (req,res,next)=>{
     try {
-        const user = await User.findByIdAndUpdate(req.params.userid, req.body, {
+        const user = await User.findByIdAndUpdate(req.user.id, req.body, {
             new: true,
             runValidators: true
         });
@@ -64,11 +63,11 @@ exports.updateUser = async (req,res,next)=>{
 };
 
 //DELETE delete user
-//URL /:userid
+//URL /
 //Private
 exports.deleteUser = async (req,res,next)=>{
     try {
-        const user = await User.findByIdAndDelete(req.params.userid);
+        await User.findByIdAndDelete(req.user.id);
 
         res.status(200).json({
             success: true, 
