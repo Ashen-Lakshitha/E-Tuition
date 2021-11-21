@@ -19,11 +19,12 @@ exports.protect = async (req, res, next)=>{
         try {
             //verify token
             const decode = jwt.verify(token, process.env.JWT_SECRET);
-            console.log(decode);
+        
             req.user = await User.findById(decode.id);
+            // console.log(req.user);
             next();
         } catch (error) {
-            return next(new ErrorResponse('Not authorized to access this routes', 401));
+            return next(new ErrorResponse('Token Expired', 401));
         }
     } catch (error) {
         next(error);

@@ -4,6 +4,7 @@ const {
     getUser,
     updateUser,
     deleteUser,
+    getMyClasses
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -12,18 +13,15 @@ const router = express.Router();
 const subjectRoute = require('./subject');
 
 //Security
-const { protect, authorize } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 //re-route
 router.use('/:userid/subjects', subjectRoute);
 
-router.get("/", getUsers );
-router.get('/:userid', getUser );
-router.put('/:userid', updateUser );
-router.delete('/:userid', deleteUser );
-
-// router.post("/teachers/:teacherid/reviews", addReview);
-// router.put("/teachers/:teacherid/reviews/:reviewid", updateReview);
-// router.delete("/teachers/:teacherid/reviews/:reviewid", deleteReview);
+router.get("/",protect, getUsers );
+router.get('/myclasses',protect, getMyClasses );
+router.get('/:userid',protect, getUser );
+router.put('/',protect, updateUser );
+router.delete('/',protect, deleteUser );
 
 module.exports = router;

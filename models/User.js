@@ -60,8 +60,12 @@ const UserSchema = new mongoose.Schema({
             },
             isEnrolled: {
                 type: Boolean,
-                default: false
-            }
+                default: true
+            },
+            createdAt:{
+                type: Date,
+                default: Date.now()
+            },
         }
     ],
     aboutMe: String,
