@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
-//GET get all users by role
+//GET get all users
 //URL /
 //Private admin only
 exports.getUsers = async (req,res,next)=>{
@@ -27,20 +27,45 @@ exports.getUsers = async (req,res,next)=>{
 exports.getUser = async (req,res,next)=>{
     try {
         const user = await User.findById(req.params.userid);
-
+        
         if(!user){
             return next(new ErrorResponse(`User not found id with ${req.params.userid}`, 404));
         }
-
+        
         res.status(200).json({
             success: true, 
             data: user
         });
-
+        
     } catch (error) {
         next(error);
     }
 };
+
+//GET get all enrolled classes for a student
+//URL /myclasses
+//Private student only
+exports.getMyClasses = async (req, res, next) => {
+    try {
+        const student = await User.findById(req.user.id).populate({
+            path: 'enrolledSubjects',
+            populate:({
+                path:'subject',
+                select: 'stream fee subject subtopic type', 
+            })
+        });
+        // console.log(student.enrolledSubjects);
+
+        res.status(200).json({
+           success: true,
+           data: student.enrolledSubjects
+        });
+        
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
 
 //PUT update user
 //URL /
@@ -51,12 +76,12 @@ exports.updateUser = async (req,res,next)=>{
             new: true,
             runValidators: true
         });
-
+        
         res.status(200).json({
             success: true, 
             data: user
         });
-
+        
     } catch (error) {
         next(error);
     }

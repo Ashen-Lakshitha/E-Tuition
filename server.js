@@ -2,6 +2,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+const cors = require('cors');
 // const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/database');
@@ -14,7 +15,6 @@ dotenv.config({ path: './config/config.env' });
 connectDB();
 
 //load routes
-// const bootcamps = require('./routes/bootcamps');
 const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
@@ -32,13 +32,13 @@ app.use(cookieParser());
 //logger middleware
 app.use(morgan('dev'));
 
+//cors middleware
+app.use(cors());
+
 // //Sanitize
 // app.use(mongoSanitize());
 
-// app.use(errorHandler);
-
 //router middleware
-// app.use('/bootcamps', bootcamps);
 app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
@@ -46,15 +46,6 @@ app.use('/users', users);
 
 //errorHhandler middleware
 app.use(errorHandler);
-
-//app.use(sghsjgdc);
-//app.use(sgfjgdf);
-
-
-
-// app.get('/', function (req,res){
-//     res.send('hi');
-// });
 
 const server = app.listen(port, console.log(`Server is running in port ${port}`));
 

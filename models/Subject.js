@@ -21,6 +21,15 @@ const SubjectSchema = new mongoose.Schema({
             "paper class"
         ]
     },
+    stream:{
+        type:String,
+        enum:[
+            'Science',
+            'Technology',
+            'Art',
+            'Commerce'
+        ]
+    },
     description: {
         type: String,
         required: [true, 'Please add a description'],
@@ -67,7 +76,9 @@ const SubjectSchema = new mongoose.Schema({
             isEnrolled:{
                 type : Boolean,
                 default: true
-            }
+            },
+            enrolledDate:Date,
+            paidDate:Date
         }
     ]
 });
