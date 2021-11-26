@@ -78,7 +78,11 @@ const SubjectSchema = new mongoose.Schema({
                 default: true
             },
             enrolledDate:Date,
-            paidDate:Date
+            paidDate:{
+                type: Date,
+                default: Date.now
+            },
+            paidMonth:String
         }
     ]
 });
