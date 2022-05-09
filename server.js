@@ -18,6 +18,7 @@ connectDB();
 const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
+const quiz = require('./routes/quiz');
 // const review = require('./routes/review');
 
 const app = express();
@@ -42,6 +43,7 @@ app.use(cors());
 app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
+app.use('/quizzes', quiz);
 // app.use('/review', review);
 
 //errorHhandler middleware

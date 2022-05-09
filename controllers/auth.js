@@ -3,24 +3,6 @@ const ErrorResponse = require('../utils/errorResponse');
 const Crypto = require('crypto');
 const sendMail = require('../utils/sendEmail');
 
-//POST create user
-//URL /auth/register
-//Public
-exports.createUser = async (req,res,next)=>{
-    try {
-        const user = await User.create(req.body);
-
-        // res.status(200).json({
-        //     success: true, 
-        //     data: user
-        // });
-        sendTokenResponse(user, 200, res);
-
-    } catch (error) {
-        next(error);
-    }
-};
-
 //POST Login User
 //URL /auth/login
 //Public
@@ -50,11 +32,6 @@ exports.loginUser = async (req,res,next)=>{
             return next(new ErrorResponse('Invalid Password', 401));
         }
 
-        // res
-        //     .status(200)
-        //     .json({
-        //         success: true, 
-        // });
         sendTokenResponse(user, 200, res); 
 
     } catch (error) {
@@ -125,7 +102,7 @@ exports.forgotPwd = async (req,res,next)=>{
     }
 
     //get reset token
-    const resetCode = user.getResetPasswordCode();
+    const resetCode = user.getResetPasswordCode(); 
 
     //save the user
     await user.save({validateBeforeSave: false});
@@ -134,7 +111,8 @@ exports.forgotPwd = async (req,res,next)=>{
 
     try {
         await sendMail({
-            email: user.email,
+            // email: user.email,
+            email:'nadunnethsara456@gmail.com',
             subject: 'Password Reset Token',
             message
         });
