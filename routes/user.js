@@ -1,10 +1,11 @@
 const express = require('express');
 const {
+    createUser,
     getUsers,
     getUser,
     updateUser,
     deleteUser,
-    getMyClasses
+    getMyEnrolledClasses
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -19,8 +20,9 @@ const { protect } = require('../middleware/auth');
 router.use('/:userid/subjects', subjectRoute);
 
 router.get("/",protect, getUsers );
-router.get('/myclasses',protect, getMyClasses );
+router.get('/myclasses',protect, getMyEnrolledClasses );
 router.get('/:userid',protect, getUser );
+router.post('/register',createUser);
 router.put('/',protect, updateUser );
 router.delete('/',protect, deleteUser );
 

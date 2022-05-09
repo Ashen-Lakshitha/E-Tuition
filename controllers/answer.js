@@ -1,33 +1,29 @@
-const Subject = require('../models/Subject');
+const Answers = require('../models/Answer');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
-const { ObjectId } = require('mongodb');
 
 //GET get all subjects(student home page)
 //URL /subjects
 //GET get all subjects for a teacher
 //URL /users/:userid/subjects
 //Public
-exports.getSubjects = async (req,res,next)=>{
+exports.viewQuizzes = async (req,res,next)=>{
     try {
-        // let queryStr = JSON.stringify(req.query);
-        // queryStr = queryStr.replace(/\b(=)\b/g, match => `$in`);
-        // console.log(queryStr);
-        let q = req.query.subject;
-        let query;
-        if(req.params.userid){
-            query = Subject.find({ teacher : req.params.userid}).populate({
-                path: 'teacher',
-                select: 'name photo',
+        // // let queryStr = JSON.stringify(req.query);
+        // // queryStr = queryStr.replace(/\b(=)\b/g, match => `$in`);
+        // // console.log(queryStr);
+        // let q = req.query.subject;
+        // let query;
+        // if(req.params.userid){
+        //     query = Subject.find({ teacher : req.params.userid}).populate({
+        //         path: 'teacher',
+        //         select: 'name photo',
                 
-            });
-        }
-        else{
-            query = Subject.find().populate({
-                path: 'teacher',
-                select: 'name photo '      
-            });
-        }
+        //     });
+        // }
+        // else{
+            let query = Answers.find();
+        // }
 
         const subjects = await query;
 
@@ -109,7 +105,7 @@ exports.getSubject = async (req,res,next)=>{
 exports.getMySubjects = async (req, res, next) => {
     try {
         const subjects = await Subject.find({teacher: req.user._id}, '-enrolledStudents');
-        // console.log(subjects);
+        console.log(subjects);
 
         res.status(200).json({
            success: true,
@@ -125,15 +121,15 @@ exports.getMySubjects = async (req, res, next) => {
 //POST create subject(teacher add class)
 //URL /subjects
 //Private teacher only
-exports.createSubject = async (req,res,next)=>{
+exports.submitAns = async (req,res,next)=>{
     try {
-        req.body.teacher = req.user.id;
+        // req.body.teacher = req.user.id;
 
-        const subject = await Subject.create(req.body);
+        const quiz = await Answers.create(req.body);
 
         res.status(200).json({
             success: true, 
-            data: subject
+            data: quiz
         });
 
     } catch (error) {
@@ -187,7 +183,7 @@ exports.enrollStudent = async (req,res,next)=>{
 
         req.body.subject = req.params.subjectid;
         req.body.student = req.user.id;
-        req.body._id = ObjectId();
+        req.body._id = ObjectID();
 
         if(!subject){
             return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
@@ -204,7 +200,6 @@ exports.enrollStudent = async (req,res,next)=>{
         });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };

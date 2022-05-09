@@ -111,4 +111,4 @@ UserSchema.methods.getResetPasswordCode = function(){
 }
 
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', UserSchema); 
