@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const cors = require('cors');
+
 // const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/database');
@@ -18,6 +19,7 @@ connectDB();
 const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
+const index=require('./routes/index');
 // const review = require('./routes/review');
 
 const app = express();
@@ -42,6 +44,7 @@ app.use(cors());
 app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
+app.use('/msges', index);
 // app.use('/review', review);
 
 //errorHhandler middleware

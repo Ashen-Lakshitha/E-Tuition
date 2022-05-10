@@ -27,7 +27,7 @@ exports.createUser = async (req,res,next)=>{
 exports.loginUser = async (req,res,next)=>{
     try {
         const {email, password} = req.body;
-
+        console.log(email);
         //validate email and password
         if(!email){
             return next(new ErrorResponse('Please enter an email', 401));
