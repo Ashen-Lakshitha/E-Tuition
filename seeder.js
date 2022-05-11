@@ -46,18 +46,18 @@ const importData = async () => {
 }
 
 //delete all data
-// const deleteData = async () => {
-//     try {
-//         await Bootcamp.deleteMany();
-//         await Course.deleteMany();
-//         await User.deleteMany();
-//         await Review.deleteMany();
-//         console.log('Data deleted');
-//         process.exit();
-//     } catch (error) {
-//         console.error(error);
-//     }
-// }
+const deleteData = async () => {
+    try {
+        // await Bootcamp.deleteMany();
+        // await Course.deleteMany();
+        await User.deleteMany();
+        // await Review.deleteMany();
+        console.log('Data deleted');
+        process.exit();
+    } catch (error) {
+        console.error(error);
+    }
+}
 
 if(process.argv[2] === '-i'){
     importData();

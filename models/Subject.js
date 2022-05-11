@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
 
 const SubjectSchema = new mongoose.Schema({
+    stream:{
+        type:String,
+        enum:[
+            'Science',
+            'Technology',
+            'Art',
+            'Commerce'
+        ]
+    },
     subject: {
         type: String,
         required: [true, 'Please add a title'],
@@ -21,15 +30,6 @@ const SubjectSchema = new mongoose.Schema({
             "paper class"
         ]
     },
-    stream:{
-        type:String,
-        enum:[
-            'Science',
-            'Technology',
-            'Art',
-            'Commerce'
-        ]
-    },
     description: {
         type: String,
         required: [true, 'Please add a description'],
@@ -38,6 +38,24 @@ const SubjectSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Please add a tuition cost']
     },
+    period:[
+        {
+            day: {
+                type: String,
+                enum: [
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday"
+                ]
+            },
+            time: String
+        }
+    ],
+    maxStudents: Number,
     createdAt: {
         type: Date,
         default: Date.now
@@ -78,7 +96,11 @@ const SubjectSchema = new mongoose.Schema({
                 default: true
             },
             enrolledDate:Date,
-            paidDate:Date
+            paidDate:{
+                type: Date,
+                default: Date.now
+            },
+            paidMonth:String
         }
     ]
 });

@@ -20,6 +20,7 @@ const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
 const index=require('./routes/index');
+const quiz = require('./routes/quiz');
 // const review = require('./routes/review');
 
 const app = express();
@@ -45,6 +46,7 @@ app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
 app.use('/msges', index);
+app.use('/quizzes', quiz);
 // app.use('/review', review);
 
 //errorHhandler middleware
