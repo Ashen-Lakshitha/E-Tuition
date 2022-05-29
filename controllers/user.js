@@ -1,38 +1,32 @@
 const User = require('../models/User');
+const Subject = require('../models/Subject');
 const ErrorResponse = require('../utils/errorResponse');
-
-//POST create user
-//URL /auth/register
-//Public
-exports.createUser = async (req,res,next)=>{
-    try {
-        const user = await User.create(req.body);
-
-        // res.status(200).json({
-        //     success: true, 
-        //     data: user
-        // });
-        sendTokenResponse(user, 200, res);
-
-    } catch (error) {
-        next(error);
-    }
-};
+const {uploadFiles, deleteFile} = require('../utils/service');
 
 //GET get all users
 //URL /
-//Private admin only
+//Public
 exports.getUsers = async (req,res,next)=>{
-
     try {
-        const users = await User.find();
-        res
-            .status(200)
-            .json({
-                success: true, 
-                count: users.length,
-                data: users
-            });
+        if(req.query.name == null){
+            const users = await User.find();
+            res
+                .status(200)
+                .json({
+                    success: true, 
+                    count: users.length,
+                    data: users
+                });
+        }else{
+            const users = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher'}).select('name');
+            res
+                .status(200)
+                .json({
+                    success: true, 
+                    count: users.length,
+                    data: users
+                });
+        }
 
     } catch (error) {
         next(error);
@@ -72,7 +66,6 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
                 select: 'stream fee subject subtopic type', 
             })
         });
-        // console.log(student.enrolledSubjects);
 
         res.status(200).json({
            success: true,
@@ -84,6 +77,83 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
         next(error);
     }
 }
+
+//GET classes in cart
+//URL /cart
+//Private students only
+exports.getCart = async (req,res,next)=>{
+    try {
+        const user = await User.findById(req.user.id).populate({
+            path: 'cart',
+            populate:({
+                path:'subject',
+                select: 'stream fee subject subtopic type teacher', 
+            })
+        });
+
+        res.status(200).json({
+            success: true,
+            count: user.cart.length, 
+            data: user.cart
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+//POST create Teacher
+//URL /register
+//Public
+exports.createTeacher = async (req,res,next)=>{
+    try {
+        var result = await uploadFiles(req.fileName);
+
+        if(result){
+            var id = result.response['id'];
+            var name = result.response['name'];
+            var mimeType = result.response['mimeType'];
+            var webViewLink = result.res['webViewLink'];
+            var webContentLink = result.res['webContentLink'];
+
+            req.body.verification = {
+                id,
+                name,
+                mimeType,
+                webViewLink,
+                webContentLink
+            };
+            req.body.isPending = true;
+        }
+
+        await User.create(req.body);
+
+        res.status(200).json({
+            success: true, 
+        });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+//POST create Student
+//URL /regstudent
+//Public
+exports.createStudent = async (req,res,next)=>{
+    try {
+        await User.create(req.body);
+
+        res.status(200).json({
+            success: true, 
+        });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
 
 //PUT update user
 //URL /
@@ -98,6 +168,102 @@ exports.updateUser = async (req,res,next)=>{
         res.status(200).json({
             success: true, 
             data: user
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
+//PUT update user profile picture
+//URL /pic
+//Private
+exports.updateProfilePicture = async (req,res,next)=>{
+    try {
+        const defaultImg  =process.env.DEFAULT_IMG;
+        const user = await User.findById(req.user.id);
+
+        if(user.photo.id == defaultImg){
+            var result = await uploadFiles(req.fileName);
+
+            if(result){
+                var id = result.response['id'];
+                var name = result.response['name'];
+                var mimeType = result.response['mimeType'];
+                var webViewLink = result.res['webViewLink'];
+                var webContentLink = result.res['webContentLink'];
+
+                req.body.photo = {
+                    id,
+                    name,
+                    mimeType,
+                    webViewLink,
+                    webContentLink
+                };
+            }
+            user.photo = req.body.photo;
+            await user.save();
+        }else{
+            await deleteFile(user.photo.id);
+            var result = await uploadFiles(req.fileName);
+
+            if(result){
+                var id = result.response['id'];
+                var name = result.response['name'];
+                var mimeType = result.response['mimeType'];
+                var webViewLink = result.res['webViewLink'];
+                var webContentLink = result.res['webContentLink'];
+
+                req.body.photo = {
+                    id,
+                    name,
+                    mimeType,
+                    webViewLink,
+                    webContentLink
+                };
+            }
+            user.photo = req.body.photo;
+            await user.save();
+        }
+        res.status(200).json({
+            success: true, 
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
+//PUT add subjects to cart
+//URL /cart/:subjectid
+//Private students only
+exports.addToCart = async (req,res,next)=>{
+    try {
+        const user = await User.findById(req.user.id);
+        const subject = await Subject.findById(req.params.subjectid);
+
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+        }
+
+        if(req.params.subjectid in user.cart){
+            return next(new ErrorResponse(`Subject already in cart`, 400));
+        }
+
+        user.enrolledSubjects.forEach(element => {
+            if(element.subject == req.params.subjectid){
+                return next(new ErrorResponse(`Subject already enrolled`, 400));
+            }
+        });
+
+        req.body.subject = req.params.subjectid;
+
+        await user.cart.push(req.body);
+        await user.save();
+        
+        res.status(200).json({
+            success: true, 
+            data: user.cart,
         });
         
     } catch (error) {
@@ -122,21 +288,32 @@ exports.deleteUser = async (req,res,next)=>{
     };
 };
 
-const sendTokenResponse = (user, statusCode, res)=>{
-    //create token
-    const token = user.getSignedJwtToken();
+//PUT remove from cart
+//URL /cart/:subjectid
+//Private students only
+exports.removeFromCart = async (req,res,next)=>{
+    try {
+        const subject = await Subject.findById(req.params.subjectid);
 
-    const options = {
-        expires : new Date(Date.now() + 1000 * 60 * 60 * 6),
-        httpOnly: true,
-    }
+        if(!subject){
+                return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+        }
 
-    res
-        .status(statusCode)
-        .cookie('token', token, options)
-        .json({
-            success: true, 
-            token,
-            role: user.role
+        const user = await User.findById(req.user.id);
+        user.cart.forEach(element => {
+            if(element.subject != req.params.subjectid){
+                return next(new ErrorResponse(`Subject not in cart`, 400));
+            }
         });
-}
+        
+        await User.findByIdAndUpdate({"_id": req.user.id}, 
+          {"$pull": {"cart": {"subject": req.params.subjectid}}});
+
+        res.status(200).json({
+                success: true, 
+            });
+        
+        } catch (error) {
+                next(error);
+    }
+};
