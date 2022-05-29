@@ -1,7 +1,6 @@
 const Subject = require('../models/Subject');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
-const { ObjectId } = require('mongodb');
 
 //GET get all subjects(student home page)
 //URL /subjects
@@ -10,10 +9,7 @@ const { ObjectId } = require('mongodb');
 //Public
 exports.getSubjects = async (req,res,next)=>{
     try {
-        // let queryStr = JSON.stringify(req.query);
-        // queryStr = queryStr.replace(/\b(=)\b/g, match => `$in`);
-        // console.log(queryStr);
-        let q = req.query.subject;
+
         let query;
         if(req.params.userid){
             query = Subject.find({ teacher : req.params.userid}).populate({
@@ -94,8 +90,37 @@ exports.getSubject = async (req,res,next)=>{
 
         res.status(200).json({
             success: true, 
-            data: subject,
-            classes : query
+            data: {subject,classes : query },
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get single subject(public)
+//URL public/:subjectid
+exports.getSubjectPublic = async (req,res,next)=>{
+    try {
+
+        let subject = await Subject.findById(req.params.subjectid).populate({
+            path: 'teacher',
+            select: 'name email phone about'      
+        });
+    
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+        }
+        
+        const teacher = subject.teacher;
+        let query = await Subject.find({
+            _id: {$ne: req.params.subjectid},
+            teacher:teacher
+        }, '-enrolledStudents');
+
+        res.status(200).json({
+            success: true, 
+            data: {subject,classes : query },
         });
 
     } catch (error) {
@@ -184,6 +209,10 @@ exports.enrollStudent = async (req,res,next)=>{
     try {
         const subject = await Subject.findById(req.params.subjectid);
         const user = await User.findById(req.user.id);
+
+        if(subject.teacher != user.id){
+            return "user not match"
+        }
 
         req.body.subject = req.params.subjectid;
         req.body.student = req.user.id;

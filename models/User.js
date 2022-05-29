@@ -4,10 +4,15 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const UserSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        enum: ['Student', 'Mr.','Mrs.', 'Miss.', 'Ven.', 'Dr.', 'Prof.', 'Lecturer']
+    },
     name: {
         type: String,
         required: [true, 'Please add a name'],
     },
+    aboutMe: String,
     email: {
         type: String,
         required: [true, 'Please add an email'],
@@ -15,19 +20,37 @@ const UserSchema = new mongoose.Schema({
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 
         'Please use a valid email']
     },
+    gender:{
+        type: String,
+        enum: ['Male', 'Female', 'None']
+    },
+    birthday: Date,
+    photo: {
+        id : {
+            type : String,
+            default : process.env.DEFAULT_IMG
+        },
+        name : String,
+        mimeType : String,
+        webViewLink : String,
+        webContentLink : String
+    },
     phone: {
         type: String,
         required:[true, 'Please add a contact number']
     },
-    address: {
-        type: String,
+    whatsapp: String,
+    telegram: String,
+    address: String,
+    qualifications: String,
+    verification: {
+        id : String,
+        name : String,
+        mimeType : String,
+        webViewLink : String,
+        webContentLink : String
     },
-    qualifications: {
-        type: String,
-    },
-    school: {
-        type: String,
-    }, 
+    school: String,
     password: {
         type: String,
         required: [true, 'Please add a password'],
@@ -37,16 +60,6 @@ const UserSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['student','teacher']
-    },
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
-    createdAt:{
-        type: Date,
-        default: Date.now()
-    },
-    photo: {
-        type: String,
-        default: 'no-photo.jpg'
     },
     enrolledSubjects:[
         {
@@ -68,9 +81,24 @@ const UserSchema = new mongoose.Schema({
             },
         }
     ],
-    aboutMe: String,
-    whatspp: String,
-    telegram: String
+    cart: [
+        {
+            subject: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'Subject',
+            }
+        }
+    ],
+    isPending:{
+        type:Boolean,
+        default: false
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    createdAt:{
+        type: Date,
+        default: Date.now()
+    },
 });
 
 //hash the password when create  or update a document
