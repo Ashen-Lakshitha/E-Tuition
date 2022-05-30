@@ -24,6 +24,12 @@ const router = express.Router({mergeParams: true});
 
 const { protect, authorize, verify } = require('../middleware/auth');
 
+//include other routes
+const lmsRoute = require('./lms');
+
+//re-route
+router.use('/:subjectid/lms', lmsRoute);
+
 router.use('/:subjectid/reviews',reviewRouter);
 router.use('/:subjectid/quiz',quizRouter);
 router.use('/:subjectid/msges', chatRouter);
