@@ -12,7 +12,6 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a name'],
     },
-    aboutMe: String,
     email: {
         type: String,
         required: [true, 'Please add an email'],
@@ -26,10 +25,7 @@ const UserSchema = new mongoose.Schema({
     },
     birthday: Date,
     photo: {
-        id : {
-            type : String,
-            default : process.env.DEFAULT_IMG
-        },
+        id : String,
         name : String,
         mimeType : String,
         webViewLink : String,
