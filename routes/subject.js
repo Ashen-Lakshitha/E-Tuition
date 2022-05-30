@@ -1,13 +1,16 @@
 const express = require('express');
+const imageUpload = require('../middleware/multer');
+
 const {
-    getSubjects, 
+    getSubjects,
     getSubject,
     getSubjectPublic,
     getMySubjects,
     createSubject,
     updateSubject,
-    deleteSubject,
     enrollStudent,
+    unEnrollStudent,
+    deleteSubject,
 } = require('../controllers/subject');
 
 const router = express.Router({mergeParams: true});
@@ -17,9 +20,7 @@ const { protect, authorize } = require('../middleware/auth');
 router
     .route('/')
     .get(getSubjects)
-    .post(protect, authorize('teacher'), createSubject);
-
-    router.route('/public/:-..')
+    .post(protect, authorize('teacher'), imageUpload.single('post'), createSubject);
 
 router
     .route('/mysubjects')
@@ -34,6 +35,10 @@ router
 router
     .route('/:subjectid/enroll')
     .put(protect, authorize('student'), enrollStudent);
+
+router
+    .route('/:subjectid/unenroll')
+    .put(protect, authorize('student'), unEnrollStudent);
 
 router.route('/public/:subjectid').get(getSubjectPublic)
 
