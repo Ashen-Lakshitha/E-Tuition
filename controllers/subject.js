@@ -1,36 +1,17 @@
 const Subject = require('../models/Subject');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
-const { ObjectId } = require('mongodb');
 
 //GET get all subjects(student home page)
 //URL /subjects
-//GET get all subjects for a teacher
-//URL /users/:userid/subjects
 //Public
 exports.getSubjects = async (req,res,next)=>{
     try {
-        // let queryStr = JSON.stringify(req.query);
-        // queryStr = queryStr.replace(/\b(=)\b/g, match => `$in`);
-        // console.log(queryStr);
-        let q = req.query.subject;
-        let query;
-        if(req.params.userid){
-            query = Subject.find({ teacher : req.params.userid}).populate({
+        let subjects = await Subject.find().populate({
                 path: 'teacher',
-                select: 'name photo',
-                
+                select: 'title name photo '      
             });
-        }
-        else{
-            query = Subject.find().populate({
-                path: 'teacher',
-                select: 'name photo '      
-            });
-        }
-
-        const subjects = await query;
-
+        
         res.status(200).json({
             success: true,
             count: subjects.length, 
@@ -42,60 +23,66 @@ exports.getSubjects = async (req,res,next)=>{
     }
 };
 
-//GET get single subject(student class/post details and teacher class page)
+//GET get single subject by teacher
 //URL subjects/:subjectid
 //Private
 exports.getSubject = async (req,res,next)=>{
     try {
 
-        let query;
-        let subject;
-
-        const user = await User.findById(req.user.id);
-        if(user.role == 'student'){
-
-            subject = await Subject.findById(req.params.subjectid).populate({
-                path: 'teacher',
-                select: 'name email phone about'      
+        let subject = await Subject.findById(req.params.subjectid).populate({
+            path: 'teacher',
+            select: "title name email phone school qualifications photo"
             });
-    
-            if(!subject){
-                return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
-            }
-            const teacher = subject.teacher;
-            query = await Subject.find({
-                _id: {$ne: req.params.subjectid},
-                teacher:teacher
-            }, '-enrolledStudents');
 
-        }else{
-            subject = await Subject.findById(req.params.subjectid).populate({    
-                path: 'enrolledStudents',
-                populate: {
-                    path: 'student',
-                    select: 'name email'      
-                }
-            });
-    
-            //make sure user is subject teacher
-            if(subject.teacher.toString() !== req.user.id){
-                return next(
-                    new ErrorResponse(
-                        `User is not authorized to view subject`, 
-                        401
-                    )
-                );
-            }
-    
-            if(!subject){
-                return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
-            }
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found`, 404));
         }
 
+        const user = await User.findById(req.user.id);
+
+        //make sure user is subject teacher
+        if(subject.teacher.toString() != req.user.id){
+            return next(
+                new ErrorResponse(
+                    `User is not authorized to view subject`, 
+                    401
+                )
+            );
+        }
+        
         res.status(200).json({
             success: true, 
             data: subject,
-            classes : query
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get single subject(public)
+//URL public/:subjectid
+//Public
+exports.getSubjectPublic = async (req,res,next)=>{
+    try {
+
+        let subject = await Subject.findById(req.params.subjectid).populate({
+            path: 'teacher',
+            select: "title name email phone school qualifications photo"
+            });
+    
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found`, 404));
+        }
+        
+        const teacher = subject.teacher;
+        let query = await Subject.find({
+                _id: {$ne: req.params.subjectid},
+                teacher:teacher
+            });
+        res.status(200).json({
+            success: true, 
+            data: {subject,classes : query },
         });
 
     } catch (error) {
@@ -109,7 +96,6 @@ exports.getSubject = async (req,res,next)=>{
 exports.getMySubjects = async (req, res, next) => {
     try {
         const subjects = await Subject.find({teacher: req.user._id}, '-enrolledStudents');
-        // console.log(subjects);
 
         res.status(200).json({
            success: true,
@@ -117,7 +103,6 @@ exports.getMySubjects = async (req, res, next) => {
         });
         
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
@@ -127,7 +112,25 @@ exports.getMySubjects = async (req, res, next) => {
 //Private teacher only
 exports.createSubject = async (req,res,next)=>{
     try {
-        req.body.teacher = req.user.id;
+
+        var result = await uploadFiles(req.fileName);
+
+        if(result){
+            var id = result.response['id'];
+            var name = result.response['name'];
+            var mimeType = result.response['mimeType'];
+            var webViewLink = result.res['webViewLink'];
+            var webContentLink = result.res['webContentLink'];
+
+            req.body.post = {
+                id,
+                name,
+                mimeType,
+                webViewLink,
+                webContentLink
+            };
+            req.body.teacher = req.user.id;
+        }
 
         const subject = await Subject.create(req.body);
 
@@ -149,16 +152,14 @@ exports.updateSubject = async (req,res,next)=>{
         let subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
-            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+            return next(new ErrorResponse(`Subject not found`, 404));
         }
         
         // make sure user is subject owner
         if(subject.teacher.toString() !== req.user.id){
             return next(
                 new ErrorResponse(
-                    `User ${req.user.id} is not authorized to update a class with id ${req.params.subjectid}`, 
-                    401
-                    )
+                    `User is not authorized to update this class`,401)
                     );
                 }
                 
@@ -187,10 +188,9 @@ exports.enrollStudent = async (req,res,next)=>{
 
         req.body.subject = req.params.subjectid;
         req.body.student = req.user.id;
-        req.body._id = ObjectId();
 
         if(!subject){
-            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+            return next(new ErrorResponse(`Subject not found`, 404));
         }
         
         await user.enrolledSubjects.push(req.body);
@@ -209,6 +209,33 @@ exports.enrollStudent = async (req,res,next)=>{
     }
 };
 
+//PUT unenroll from subject
+//URL subjects/:subjectid/unenroll
+//Private students only
+exports.unEnrollStudent = async (req,res,next)=>{
+    try {
+        const subject = await Subject.findById(req.params.subjectid);
+        const user = await User.findById(req.user.id);
+
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found`, 404));
+        }
+        await User.findByIdAndUpdate({"_id": req.user.id}, 
+          {"$pull": {"enrolledSubjects": {"subject": req.params.subjectid}}});
+
+        await Subject.findByIdAndUpdate({"_id": req.params.subjectid}, 
+          {"$pull": {"enrolledStudents": {"student": req.user.id}}});
+        
+        res.status(200).json({
+            success: true, 
+        });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
 //DELETE delete class
 //URL /subjects/:subjectid
 //Private teacher only
@@ -217,19 +244,22 @@ exports.deleteSubject = async (req,res,next)=>{
         const subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
-            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+            return next(new ErrorResponse(`Subject not found`, 404));
         }
 
         //make sure user is subject owner
         if(subject.teacher.toString() !== req.user.id){
             return next(
                 new ErrorResponse(
-                    `User ${req.user.id} is not authorized to delete a class`, 
+                    `User is not authorized to delete this class`, 
                     401
                 )
             );
         }
 
+        if(subject.enrolledStudents.length > 0){
+            return next(new ErrorResponse(`Cannot delete class with enrolled students`, 400));
+        }
 
         await subject.remove();
 
