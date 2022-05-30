@@ -41,7 +41,7 @@ exports.getUser = async (req,res,next)=>{
         const user = await User.findById(req.params.userid);
         
         if(!user){
-            return next(new ErrorResponse(`User not found id with ${req.params.userid}`, 404));
+            return next(new ErrorResponse(`User not found`, 404));
         }
         
         res.status(200).json({
@@ -180,10 +180,9 @@ exports.updateUser = async (req,res,next)=>{
 //Private
 exports.updateProfilePicture = async (req,res,next)=>{
     try {
-        const defaultImg  =process.env.DEFAULT_IMG;
         const user = await User.findById(req.user.id);
 
-        if(user.photo.id == defaultImg){
+        if(user.photo.id == null){
             var result = await uploadFiles(req.fileName);
 
             if(result){
@@ -243,7 +242,7 @@ exports.addToCart = async (req,res,next)=>{
         const subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
-            return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+            return next(new ErrorResponse(`Subject not found`, 404));
         }
 
         if(req.params.subjectid in user.cart){
@@ -252,7 +251,7 @@ exports.addToCart = async (req,res,next)=>{
 
         user.enrolledSubjects.forEach(element => {
             if(element.subject == req.params.subjectid){
-                return next(new ErrorResponse(`Subject already enrolled`, 400));
+                return next(new ErrorResponse(`Already enrolled`, 400));
             }
         });
 
@@ -296,13 +295,13 @@ exports.removeFromCart = async (req,res,next)=>{
         const subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
-                return next(new ErrorResponse(`Subject not found id with ${req.params.subjectid}`, 404));
+                return next(new ErrorResponse(`Subject not found`, 404));
         }
 
         const user = await User.findById(req.user.id);
         user.cart.forEach(element => {
             if(element.subject != req.params.subjectid){
-                return next(new ErrorResponse(`Subject not in cart`, 400));
+                return next(new ErrorResponse(`Subject is not in cart`, 400));
             }
         });
         
