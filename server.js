@@ -19,7 +19,7 @@ const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
 const quiz = require('./routes/quiz');
-// const review = require('./routes/review');
+const reviews = require('./routes/reviews');
 
 const app = express();
 const port = 5000;
@@ -44,7 +44,7 @@ app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
 app.use('/quizzes', quiz);
-// app.use('/review', review);
+app.use('/reviews', reviews);
 
 //errorHhandler middleware
 app.use(errorHandler);

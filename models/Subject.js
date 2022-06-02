@@ -66,7 +66,13 @@ const SubjectSchema = new mongoose.Schema({
         required: true
     },
     averageRating: Number,
-    review: [
+    review: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Review',
+        required: true
+    },
+    
+    /*[
         {
             text: String,
             rate:{
@@ -80,7 +86,7 @@ const SubjectSchema = new mongoose.Schema({
                 required: true
             }
         }
-    ],
+    ],*/
     enrolledStudents:[
         {
             student: {

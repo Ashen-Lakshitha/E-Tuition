@@ -9,9 +9,13 @@ const {
     enrollStudent,
 } = require('../controllers/subject');
 
+const reviewRouter = require('./reviews');
+
 const router = express.Router({mergeParams: true});
 
 const { protect, authorize } = require('../middleware/auth');
+
+router.use('/:subjectid/review',reviewRouter);
 
 router
     .route('/')
