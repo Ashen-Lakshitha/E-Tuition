@@ -64,12 +64,16 @@ exports.logout = async (req,res,next)=>{
 //URL /auth/me
 //Private only user
 exports.getMe = async (req,res,next)=>{
-    const user = await User.findById(req.user.id);
+    try{
+        const user = await User.findById(req.user.id);
 
-    res.status(200).json({
-        success: true,
-        data: user
-    });
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    }catch(error){
+        next(error);
+    }
 };
 
 //PUT Update password
@@ -107,12 +111,12 @@ exports.forgotPwd = async (req,res,next)=>{
     //save the user
     await user.save({validateBeforeSave: false});
 
-    const message = `You are receiving this email because you has requested the reset of a password.This is your password reset code\n\n${resetCode}`;
+    const message = `Hi ${user.name},\n\nYou are receiving this email because you has requested the reset of a password.This is your password reset code\n\n${resetCode}`;
 
     try {
         await sendMail({
-            // email: user.email,
-            email:'nadunnethsara456@gmail.com',
+            email: user.email,
+            // email:'nadunnethsara456@gmail.com',
             subject: 'Password Reset Token',
             message
         });
@@ -165,13 +169,15 @@ const sendTokenResponse = (user, statusCode, res)=>{
         expires : new Date(Date.now() + 1000 * 60 * 60 * 6),
         httpOnly: true,
     }
-
+    
     res
         .status(statusCode)
         .cookie('token', token, options)
         .json({
             success: true, 
             token,
-            role: user.role
+            role: user.role,
+            user: user.id,
+            cart: user.cart
         });
 }

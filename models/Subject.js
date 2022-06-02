@@ -16,6 +16,13 @@ const SubjectSchema = new mongoose.Schema({
         trim: true,
         maxlength: 50
     },
+    post:{
+        id : String,
+        name : String,
+        mimeType : String,
+        webViewLink : String,
+        webContentLink : String
+    },
     subtopic: {
         type: String,
         trim : true
