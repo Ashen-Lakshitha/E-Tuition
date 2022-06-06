@@ -177,7 +177,6 @@ const sendTokenResponse = (user, statusCode, res)=>{
             success: true, 
             token,
             role: user.role,
-            user: user.id,
-            cart: user.cart
+            cart: user.cart.length
         });
 }
