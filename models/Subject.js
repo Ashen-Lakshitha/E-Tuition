@@ -30,11 +30,11 @@ const SubjectSchema = new mongoose.Schema({
     type:{
         type: String,
         enum:[
-            "mass class",
-            "individual class",
-            "group class",
-            "revision",
-            "paper class"
+            "Mass class",
+            "Individual class",
+            "Group class",
+            "Revision",
+            "Paper class"
         ]
     },
     description: {
