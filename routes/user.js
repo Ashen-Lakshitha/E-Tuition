@@ -1,5 +1,5 @@
 const express = require('express');
-const imageUpload = require('../middleware/multer');
+const upload = require('../middleware/multer');
 
 const {
     createTeacher,
@@ -31,11 +31,11 @@ router.get('/myclasses',protect, authorize("student"), getMyEnrolledClasses );
 router.get('/cart',protect, authorize("student"), getCart );
 router.get('/:userid',protect, authorize("admin", "teacher"), getUser );
 
-router.post('/register',imageUpload.single('verifications'), createTeacher);
+router.post('/register',upload.single('verifications'), createTeacher);
 router.post('/regstudent', createStudent);
 
 router.put('/',protect, updateUser );
-router.put('/pic', protect, imageUpload.single('image'), updateProfilePicture);
+router.put('/pic', protect, upload.single('image'), updateProfilePicture);
 router.put('/cart/:subjectid', protect, authorize("student"), addToCart );
 
 router.delete('/', protect, deleteUser );
