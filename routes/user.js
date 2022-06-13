@@ -41,8 +41,4 @@ router.put('/cart/:subjectid', protect, authorize("student"), addToCart );
 router.delete('/', protect, deleteUser );
 router.delete('/cart/:subjectid', protect, authorize("student"), removeFromCart );
 
-// router.post("/teachers/:teacherid/reviews", addReview);
-// router.put("/teachers/:teacherid/reviews/:reviewid", updateReview);
-// router.delete("/teachers/:teacherid/reviews/:reviewid", deleteReview);
-
 module.exports = router;

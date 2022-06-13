@@ -10,6 +10,7 @@ const errorHandler = (err, req, res, next) => {
 
     //duplicate fields
     if( err.code === 11000){
+        console.log(err.message);
         const msg = `This email is already registred`;
         err = new ErrorResponse(msg, 400);
     }
