@@ -10,8 +10,6 @@ const Subject = require('../models/Subject');
 //Public
 exports.getReviews = async (req,res,next)=>{
     try {
-        //let q = req.query.subject;
-        //let query;
         if(req.params.subjectid){
             const reviews = await Review.find({ subject : req.params.subjectid});
 
@@ -22,15 +20,18 @@ exports.getReviews = async (req,res,next)=>{
             });
         }
         else{
-        res.status(200).json({
-            success: true,
-        });
+            const reviews = await Review.find();
+
+            return res.status(200).json({
+                success: true,
+                count: reviews.length,
+                data: reviews
+            });
     } 
     }catch (error) {
         next(error);
     }
 };
-
 
 //Add review
 //URL subjects/:subjectid/reviews
@@ -43,7 +44,7 @@ exports.addReview = async (req, res, next) => {
         const subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
-            return next(new ErrorResponse(`No subject with the id of ${req.params.subjectid}`, 404));
+            return next(new ErrorResponse(`No subject found`, 404));
         }
         
         const review = await Review.create(req.body);

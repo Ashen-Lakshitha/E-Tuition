@@ -9,8 +9,6 @@ const {
 const router = express.Router({mergeParams: true});
 const { protect, authorize } = require('../middleware/auth');
 
-
-
 router
     .route('/')
     .get( getReviews )
@@ -20,7 +18,5 @@ router
     .route('/:id')
     .put(protect, authorize('student'),updateReview )
     .delete(protect, authorize('student'),deleteReview);
-
-
 
 module.exports = router;

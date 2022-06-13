@@ -1,23 +1,24 @@
 const mongoose = require('mongoose');
 
 const ReviewSchema = new mongoose.Schema({
-    student:{
-        type: mongoose.Schema.ObjectId,
-        ref: 'User',
-        required: true
-    },
     subject:{
         type: mongoose.Schema.ObjectId,
         ref: 'Subject',
-        required: true
+        required: true,
+    },
+    student:{
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+        required: true,
     },
     rating:{
         type:Number,
+        min: 1,
+        max: 5,
         required:true
     },
     comment:{
         type:String,
-        required: true
     },
     createdAt: {
         type: Date,
@@ -26,7 +27,7 @@ const ReviewSchema = new mongoose.Schema({
 });
 
 //unable user to submit more than one review for a class
-ReviewSchema.index({ bootcamp: 1, user: 1 }, { unique:true });
+ReviewSchema.index({ subject: 1, student: 1 }, { unique:true, dropDups: true });
 
 
 
