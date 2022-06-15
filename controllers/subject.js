@@ -23,15 +23,21 @@ exports.getSubjects = async (req,res,next)=>{
     }
 };
 
-//GET get single subject by teacher
+//GET get single subject by subject id
 //URL subjects/:subjectid
 //Private
 exports.getSubject = async (req,res,next)=>{
     try {
-
+        let isEnrolled;
+        let isInCart;
         let subject = await Subject.findById(req.params.subjectid).populate({
             path: 'teacher',
             select: "title name email phone school qualifications photo"
+            }).populate({
+                path: 'enrolledStudents',
+                populate: {
+                    path:  'student',
+                    select: "name email phone school photo"}
             });
 
         if(!subject){
@@ -39,21 +45,46 @@ exports.getSubject = async (req,res,next)=>{
         }
 
         const user = await User.findById(req.user.id);
+        if(user.role == "teacher"){
+            //make sure user is subject teacher
+            if(subject.teacher.id.toString() != req.user.id){
+                return next(
+                    new ErrorResponse(
+                        `User is not authorized to view subject`, 
+                        401
+                    )
+                );
+            }
+            res.status(200).json({
+                success: true, 
+                data: subject,
+            });
+        }else{
 
-        //make sure user is subject teacher
-        if(subject.teacher.toString() != req.user.id){
-            return next(
-                new ErrorResponse(
-                    `User is not authorized to view subject`, 
-                    401
-                )
-            );
-        }
+            user.cart.forEach(element => {
+                if(req.params.subjectid == element.subject){
+                    isInCart = true;
+                }
+            });
+
+            user.enrolledSubjects.forEach(element => {
+                if(element.subject == req.params.subjectid){
+                    isEnrolled = true;
+                }
+            });
+
+            const teacher = subject.teacher;
+            let classes = await Subject.find({
+                    _id: {$ne: req.params.subjectid},
+                    teacher:teacher
+                });
+
+            res.status(200).json({
+                    success: true, 
+                    data: {subject,classes,isEnrolled,isInCart},
+                });
+            }
         
-        res.status(200).json({
-            success: true, 
-            data: subject,
-        });
 
     } catch (error) {
         next(error);
@@ -183,6 +214,7 @@ exports.updateSubject = async (req,res,next)=>{
 //Private students only
 exports.enrollStudent = async (req,res,next)=>{
     try {
+        var isEnrolled;
         const subject = await Subject.findById(req.params.subjectid);
         const user = await User.findById(req.user.id);
 
@@ -192,16 +224,28 @@ exports.enrollStudent = async (req,res,next)=>{
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
         }
-        
-        await user.enrolledSubjects.push(req.body);
-        await user.save();
-        
-        await subject.enrolledStudents.push(req.body);
-        await subject.save();
-
-        res.status(200).json({
-            success: true, 
+        user.enrolledSubjects.forEach(element => {
+            if(element.subject == req.params.subjectid){
+               isEnrolled = true;
+            }
         });
+
+        if(!isEnrolled){
+            await user.enrolledSubjects.push(req.body);
+            await user.save();
+
+            await User.findByIdAndUpdate({"_id": req.user.id}, 
+            {"$pull": {"cart": {"subject": req.params.subjectid}}});
+            
+            await subject.enrolledStudents.push(req.body);
+            await subject.save();
+
+            res.status(200).json({
+                success: true, 
+            });
+        }else if(isEnrolled){
+            return next(new ErrorResponse(`User is already enrolled`, 400));
+        }
 
     } catch (error) {
         console.log(error);

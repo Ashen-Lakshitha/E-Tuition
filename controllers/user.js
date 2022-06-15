@@ -238,32 +238,43 @@ exports.updateProfilePicture = async (req,res,next)=>{
 //Private students only
 exports.addToCart = async (req,res,next)=>{
     try {
-        const user = await User.findById(req.user.id);
-        const subject = await Subject.findById(req.params.subjectid);
+        var isEnrolled;
+        var isInCart;
+        var user = await User.findById(req.user.id);
+        var subject = await Subject.findById(req.params.subjectid);
 
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
         }
 
-        if(req.params.subjectid in user.cart){
-            return next(new ErrorResponse(`Subject already in cart`, 400));
-        }
 
-        user.enrolledSubjects.forEach(element => {
-            if(element.subject == req.params.subjectid){
-                return next(new ErrorResponse(`Already enrolled`, 400));
+        user.cart.forEach(element => {
+            if(req.params.subjectid == element.subject){
+                isInCart = true;
             }
         });
 
-        req.body.subject = req.params.subjectid;
-
-        await user.cart.push(req.body);
-        await user.save();
-        
-        res.status(200).json({
-            success: true, 
-            data: user.cart,
+        user.enrolledSubjects.forEach(element => {
+            if(element.subject == req.params.subjectid){
+                isEnrolled = true;
+            }
         });
+
+        if(!isEnrolled && !isInCart){
+            req.body.subject = req.params.subjectid;
+
+            await user.cart.push(req.body);
+            await user.save();
+            
+            res.status(200).json({
+                success: true, 
+                data: user.cart,
+            });
+        }else if(isEnrolled){
+            return next(new ErrorResponse(`Already enrolled`, 400));
+        }else if(isInCart){
+            return next(new ErrorResponse(`Subject already in cart`, 400));
+        }
         
     } catch (error) {
         next(error);

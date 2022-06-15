@@ -13,9 +13,13 @@ const {
     deleteSubject,
 } = require('../controllers/subject');
 
+const reviewRouter = require('./reviews');
+
 const router = express.Router({mergeParams: true});
 
 const { protect, authorize } = require('../middleware/auth');
+
+router.use('/:subjectid/reviews',reviewRouter);
 
 router
     .route('/')
@@ -41,9 +45,5 @@ router
     .put(protect, authorize('student'), unEnrollStudent);
 
 router.route('/public/:subjectid').get(getSubjectPublic)
-
-    // router.post("/teachers/:teacherid/reviews", addReview);
-// router.put("/teachers/:teacherid/reviews/:reviewid", updateReview);
-// router.delete("/teachers/:teacherid/reviews/:reviewid", deleteReview);
 
 module.exports = router;
