@@ -133,7 +133,6 @@ exports.createTeacher = async (req,res,next)=>{
         });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -181,8 +180,8 @@ exports.updateUser = async (req,res,next)=>{
 exports.updateProfilePicture = async (req,res,next)=>{
     try {
         const user = await User.findById(req.user.id);
-
-        if(user.photo.id == null){
+        if(user.photo.id != null){
+            await deleteFile(user.photo.id);
             var result = await uploadFiles(req.fileName);
 
             if(result){
@@ -203,9 +202,7 @@ exports.updateProfilePicture = async (req,res,next)=>{
             user.photo = req.body.photo;
             await user.save();
         }else{
-            await deleteFile(user.photo.id);
             var result = await uploadFiles(req.fileName);
-
             if(result){
                 var id = result.response['id'];
                 var name = result.response['name'];
@@ -229,6 +226,7 @@ exports.updateProfilePicture = async (req,res,next)=>{
         });
         
     } catch (error) {
+        console.log("Error=>"+error);
         next(error);
     }
 };

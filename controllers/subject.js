@@ -1,6 +1,7 @@
 const Subject = require('../models/Subject');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
+const {uploadFiles, deleteFile} = require('../utils/service');
 
 //GET get all subjects(student home page)
 //URL /subjects
@@ -143,7 +144,6 @@ exports.getMySubjects = async (req, res, next) => {
 //Private teacher only
 exports.createSubject = async (req,res,next)=>{
     try {
-
         var result = await uploadFiles(req.fileName);
 
         if(result){
@@ -163,14 +163,14 @@ exports.createSubject = async (req,res,next)=>{
             req.body.teacher = req.user.id;
         }
 
-        const subject = await Subject.create(req.body);
+        await Subject.create(req.body);
 
         res.status(200).json({
             success: true, 
-            data: subject
         });
 
     } catch (error) {
+        console.log("error");
         next(error);
     }
 };
