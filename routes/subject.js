@@ -44,6 +44,10 @@ router
     .route('/:subjectid/unenroll')
     .put(protect, authorize('student'), unEnrollStudent);
 
+router
+    .route('/:subjectid/post')
+    .put(protect, authorize('teacher'), upload.single('post'), enrollStudent);
+
 router.route('/public/:subjectid').get(getSubjectPublic)
 
 module.exports = router;

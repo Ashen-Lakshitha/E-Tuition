@@ -45,23 +45,18 @@ const SubjectSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Please add a tuition cost']
     },
-    period:[
-        {
-            day: {
-                type: String,
-                enum: [
-                    "Sunday",
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday"
-                ]
-            },
-            time: String
-        }
-    ],
+    period:{
+        type: String,
+        enum: [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+        ]
+    },
     maxStudents: Number,
     createdAt: {
         type: Date,
@@ -73,27 +68,6 @@ const SubjectSchema = new mongoose.Schema({
         required: true
     },
     averageRating: Number,
-    review: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Review',
-        required: true
-    },
-    
-    /*[
-        {
-            text: String,
-            rate:{
-                type: Number,
-                min: 1,
-                max: 10
-            },
-            student:{
-                type: mongoose.Schema.ObjectId,
-                ref: 'User',
-                required: true
-            }
-        }
-    ],*/
     enrolledStudents:[
         {
             student: {

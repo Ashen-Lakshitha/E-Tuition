@@ -209,6 +209,42 @@ exports.updateSubject = async (req,res,next)=>{
     }
 };
 
+//PUT update class poster
+//URL /:subjectid/post
+//Private
+exports.updateClassPoster = async (req,res,next)=>{
+    try {
+        const subject = await Subject.findById(req.params.subjectid);
+        await deleteFile(subject.post.id);
+        var result = await uploadFiles(req.fileName);
+
+        if(result){
+            var id = result.response['id'];
+            var name = result.response['name'];
+            var mimeType = result.response['mimeType'];
+            var webViewLink = result.res['webViewLink'];
+            var webContentLink = result.res['webContentLink'];
+
+            req.body.photo = {
+                id,
+                name,
+                mimeType,
+                webViewLink,
+                webContentLink
+            };
+        }
+        subject.post = req.body.photo;
+        await subject.save();
+        
+        res.status(200).json({
+            success: true, 
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
 //PUT enroll to subject
 //URL subjects/:subjectid/enroll
 //Private students only
