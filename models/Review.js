@@ -29,9 +29,6 @@ const ReviewSchema = new mongoose.Schema({
 //unable user to submit more than one review for a class
 ReviewSchema.index({ subject: 1, student: 1 }, { unique:true, dropDups: true });
 
-
-
-
 //static method to get avg of ratings
 ReviewSchema.statics.getAverageRating = async function(subjectid){
     const obj = await this.aggregate([
