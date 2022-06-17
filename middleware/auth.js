@@ -21,7 +21,6 @@ exports.protect = async (req, res, next)=>{
             const decode = jwt.verify(token, process.env.JWT_SECRET);
         
             req.user = await User.findById(decode.id);
-            //console.log(req.user);
             next();
         } catch (error) {
             return next(new ErrorResponse('Token Expired', 401));
@@ -39,4 +38,12 @@ exports.authorize = (...roles) =>{
         }
         next();
     }
+}
+
+//Check verified users
+exports.verify = (req,res,next) =>{
+    if(req.user.isPending){
+       return next(new ErrorResponse(`User is not verified`, 404));
+    }
+     next();  
 }

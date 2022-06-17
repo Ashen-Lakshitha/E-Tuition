@@ -60,7 +60,7 @@ const SubjectSchema = new mongoose.Schema({
     maxStudents: Number,
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now()
     },
     teacher:{
         type: mongoose.Schema.ObjectId,
@@ -74,20 +74,25 @@ const SubjectSchema = new mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: 'User'
             },
-            isPaid: {
-                type : Boolean,
-                default: false
-            },
+            payment: [
+                {
+                    date: Date,
+                    month: Date,
+                    year: Date,
+                    isPaid:{
+                        type : Boolean,
+                        default: false
+                    }
+                }
+            ],
             isEnrolled:{
                 type : Boolean,
                 default: true
             },
-            enrolledDate:Date,
-            paidDate:{
+            enrolledDate:{
                 type: Date,
-                default: Date.now
+                default: Date.now()
             },
-            paidMonth:String
         }
     ]
 });

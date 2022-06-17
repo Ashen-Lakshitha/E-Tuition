@@ -8,6 +8,7 @@ const {
     getMySubjects,
     createSubject,
     updateSubject,
+    updateClassPoster,
     enrollStudent,
     unEnrollStudent,
     deleteSubject,
@@ -17,14 +18,14 @@ const reviewRouter = require('./reviews');
 
 const router = express.Router({mergeParams: true});
 
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, verify } = require('../middleware/auth');
 
 router.use('/:subjectid/reviews',reviewRouter);
 
 router
     .route('/')
     .get(getSubjects)
-    .post(protect, authorize('teacher'), upload.single('post'), createSubject);
+    .post(protect, authorize('teacher'), upload.single('post'), verify, createSubject);
 
 router
     .route('/mysubjects')
@@ -38,7 +39,7 @@ router
 
 router
     .route('/:subjectid/enroll')
-    .put(protect, authorize('student'), enrollStudent);
+    .put(protect, authorize('student'), verify, enrollStudent);
 
 router
     .route('/:subjectid/unenroll')
@@ -46,7 +47,7 @@ router
 
 router
     .route('/:subjectid/post')
-    .put(protect, authorize('teacher'), upload.single('post'), enrollStudent);
+    .put(protect, authorize('teacher'), upload.single('post'), updateClassPoster);
 
 router.route('/public/:subjectid').get(getSubjectPublic)
 
