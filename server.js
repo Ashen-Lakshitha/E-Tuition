@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const cors = require('cors');
-// const mongoSanitize = require('express-mongo-sanitize');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/error');
@@ -20,6 +20,7 @@ const auth = require('./routes/auth');
 const users = require('./routes/user');
 const quiz = require('./routes/quiz');
 const reviews = require('./routes/reviews');
+const admin = require('./routes/admin');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -36,8 +37,8 @@ app.use(morgan('dev'));
 //cors middleware
 app.use(cors());
 
-// //Sanitize
-// app.use(mongoSanitize());
+//Sanitize
+app.use(mongoSanitize());
 
 //router middleware
 app.use('/subjects', subject);
@@ -45,6 +46,7 @@ app.use('/auth', auth);
 app.use('/users', users);
 app.use('/quizzes', quiz);
 app.use('/reviews', reviews);
+app.use('/admin', admin);
 
 //errorHhandler middleware
 app.use(errorHandler);
