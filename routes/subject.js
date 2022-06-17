@@ -1,5 +1,5 @@
 const express = require('express');
-const imageUpload = require('../middleware/multer');
+const upload = require('../middleware/multer');
 
 const {
     getSubjects,
@@ -24,7 +24,7 @@ router.use('/:subjectid/reviews',reviewRouter);
 router
     .route('/')
     .get(getSubjects)
-    .post(protect, authorize('teacher'), imageUpload.single('post'), createSubject);
+    .post(protect, authorize('teacher'), upload.single('post'), createSubject);
 
 router
     .route('/mysubjects')
@@ -43,6 +43,10 @@ router
 router
     .route('/:subjectid/unenroll')
     .put(protect, authorize('student'), unEnrollStudent);
+
+router
+    .route('/:subjectid/post')
+    .put(protect, authorize('teacher'), upload.single('post'), enrollStudent);
 
 router.route('/public/:subjectid').get(getSubjectPublic)
 

@@ -3,31 +3,22 @@ const ErrorResponse = require('../utils/errorResponse');
 const Review = require('../models/Review');
 const Subject = require('../models/Subject');
 
-//GET get all reviews
-//GET get all reviews for a course
-//URL /review
+//GET get all reviews for a subject
 //URL /subjects/:subjectid/review
 //Public
 exports.getReviews = async (req,res,next)=>{
     try {
-        if(req.params.subjectid){
-            const reviews = await Review.find({ subject : req.params.subjectid});
+        const reviews = await Review.find({ subject : req.params.subjectid}).populate({
+            path: 'student',
+            select: 'name photo'
+        });
 
-            return res.status(200).json({
-                success: true,
-                count: reviews.length,
-                data: reviews
-            });
-        }
-        else{
-            const reviews = await Review.find();
+        return res.status(200).json({
+            success: true,
+            count: reviews.length,
+            data: reviews
+        });
 
-            return res.status(200).json({
-                success: true,
-                count: reviews.length,
-                data: reviews
-            });
-    } 
     }catch (error) {
         next(error);
     }

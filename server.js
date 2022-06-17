@@ -24,7 +24,7 @@ const quiz = require('./routes/quiz');
 const reviews = require('./routes/reviews');
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 //Body Parser
 app.use(express.json())
