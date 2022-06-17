@@ -1,22 +1,6 @@
 const mongoose =require('mongoose');
 
-const ChatMsg =mongoose.model('Chat',{
-    name:{
-        type:String,
-        required:true
-    },
-    email:{
-        type:String,
-        required:true
-    },
-    age:{
-        type:String,
-        required:true
-    }
-
-});
-
-const ChatUniq =mongoose.model('UniqeChat',{
+const SingleChat =mongoose.model('SingleChat',{
     uniqchatid:{
         type:String,
         required:true
@@ -29,6 +13,23 @@ const ChatUniq =mongoose.model('UniqeChat',{
         type:String,
         required:true
     },
+    numUnreadmsg:{
+        type:Number,
+        required:false
+    },
+    lastmsg:{
+        type:String,
+        required:false
+    },
+    lastseentime:{
+        type:Number,
+        required:false
+    },
+    lastmsgtime:{
+        type:Number,
+        required:false
+    }
+    
 
 });
 
@@ -62,5 +63,43 @@ const UserMsg = mongoose.model('UserMsg',{
         required:true
     },
 })
+module.exports ={UserMsg,SingleChat}
 
-module.exports ={ChatMsg,ChatUniq,UserMsg}
+// module.exports ={ChatMsg,ChatUniq,UserMsg}
+
+// const mongoose =require('mongoose');
+
+
+
+// const UserMsg = new mongoose.Schema({
+
+//     teacher:{
+//         type: mongoose.Schema.ObjectId,
+//         ref: 'User'
+//     },
+//     student:{
+//         type: mongoose.Schema.ObjectId,
+//         ref: 'User'
+//     },
+//     msg:[
+//         {
+//             role: String,
+//             text:{
+//                 type: String,
+//                 required:true
+//             },
+//             time:{
+//                 type: Date,
+//                 default: Date.now()
+//             },
+//             seen:Boolean,
+//             delivered:Boolean
+//         }
+//     ],
+//     createdAt:{
+//         type: Date,
+//         default: Date.now()
+//     },
+// })
+
+// module.exports = mongoose.model("chatmsg",UserMsg);

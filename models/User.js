@@ -135,4 +135,4 @@ UserSchema.methods.getResetPasswordCode = function(){
 }
 
 
-module.exports = mongoose.model('User', UserSchema); 
+module.exports = User = mongoose.model('User', UserSchema); 
