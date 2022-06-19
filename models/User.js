@@ -6,7 +6,8 @@ const jwt = require('jsonwebtoken');
 const UserSchema = new mongoose.Schema({
     title: {
         type: String,
-        enum: ['Student', 'Mr.','Mrs.', 'Miss.', 'Ven.', 'Dr.', 'Prof.', 'Lecturer']
+        enum: ['Student', 'Mr.','Mrs.', 'Miss.', 'Ven.', 'Dr.', 'Prof.', 'Lecturer'],
+        required: [true, 'Please add a title']
     },
     name: {
         type: String,
@@ -21,11 +22,15 @@ const UserSchema = new mongoose.Schema({
     },
     gender:{
         type: String,
-        enum: ['Male', 'Female', 'None']
+        enum: ['Male', 'Female', 'None'],
+        required: [true, 'Please add a gender']
     },
     birthday: Date,
     photo: {
-        id : String,
+        id : {
+            type:String,
+            default:null
+        },
         name : String,
         mimeType : String,
         webViewLink : String,
@@ -63,15 +68,23 @@ const UserSchema = new mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: 'Subject'
             },
-            isPaid: {
-                type: Boolean,
-                default: false
-            },
+            payment: [
+                {
+                    date: Date,
+                    month: Date,
+                    year: Date,
+                    isPaid:{
+                        type : Boolean,
+                        default: false
+                    },
+                    amount: Number
+                }
+            ],
             isEnrolled: {
                 type: Boolean,
                 default: true
             },
-            createdAt:{
+            enrolledDate:{
                 type: Date,
                 default: Date.now()
             },
@@ -91,11 +104,12 @@ const UserSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    createdAt:{
+    expireAt: {
         type: Date,
-        default: Date.now()
-    },
-});
+        default: Date.now(),
+        index: { expires: 60 },
+      },
+},{timestamps: true});
 
 //hash the password when create  or update a document
 UserSchema.pre('save', async function(next){
@@ -118,7 +132,6 @@ UserSchema.methods.getSignedJwtToken = function(){
                 expiresIn : '6h'
     });
 }
-
 
 //generate and hash password token
 UserSchema.methods.getResetPasswordCode = function(){

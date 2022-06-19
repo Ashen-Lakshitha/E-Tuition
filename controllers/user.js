@@ -2,32 +2,62 @@ const User = require('../models/User');
 const Subject = require('../models/Subject');
 const ErrorResponse = require('../utils/errorResponse');
 const {uploadFiles, deleteFile} = require('../utils/service');
+const path = require('path');
+const sendMail = require('../utils/sendEmail');
 
-//GET get all users
-//URL /
+//GET get all teachers
+//URL /teachers
 //Public
-exports.getUsers = async (req,res,next)=>{
+exports.getTeachers = async (req,res,next)=>{
     try {
         if(req.query.name == null){
-            const users = await User.find();
+            const teachers = await User.find({role : 'teacher'});
             res
                 .status(200)
                 .json({
                     success: true, 
-                    count: users.length,
-                    data: users
+                    count: teachers.length,
+                    data: teachers
                 });
         }else{
-            const users = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher'}).select('name');
+            const teachers = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher', isPending: false}).select('name');
             res
                 .status(200)
                 .json({
                     success: true, 
-                    count: users.length,
-                    data: users
+                    count: teachers.length,
+                    data: teachers
                 });
         }
+    } catch (error) {
+        next(error);
+    }
+};
 
+//GET get all students
+//URL /students
+//Private teacher and admin only
+exports.getStudents = async (req,res,next)=>{
+    try {
+        if(req.query.name == null){
+            const students = await User.find({isPending: false,role : 'student'});
+            res
+                .status(200)
+                .json({
+                    success: true, 
+                    count: students.length,
+                    data: students
+                });
+        }else{
+            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false}).select('name');
+            res
+                .status(200)
+                .json({
+                    success: true, 
+                    count: students.length,
+                    data: students
+                });
+        }
     } catch (error) {
         next(error);
     }
@@ -38,7 +68,7 @@ exports.getUsers = async (req,res,next)=>{
 //Private admin only
 exports.getUser = async (req,res,next)=>{
     try {
-        const user = await User.findById(req.params.userid);
+        const user = await User.findById(req.params.userid).where({isPending: false});
         
         if(!user){
             return next(new ErrorResponse(`User not found`, 404));
@@ -63,7 +93,7 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
             path: 'enrolledSubjects',
             populate:({
                 path:'subject',
-                select: 'stream fee subject subtopic type', 
+                select: 'stream subject subtopic type fee post', 
             })
         });
 
@@ -73,7 +103,6 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
         });
         
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
@@ -87,7 +116,7 @@ exports.getCart = async (req,res,next)=>{
             path: 'cart',
             populate:({
                 path:'subject',
-                select: 'stream fee subject subtopic type teacher', 
+                select: 'stream subject subtopic type fee post', 
             })
         });
 
@@ -103,7 +132,7 @@ exports.getCart = async (req,res,next)=>{
 }
 
 //POST create Teacher
-//URL /register
+//URL /regteacher
 //Public
 exports.createTeacher = async (req,res,next)=>{
     try {
@@ -142,14 +171,24 @@ exports.createTeacher = async (req,res,next)=>{
 //Public
 exports.createStudent = async (req,res,next)=>{
     try {
-        await User.create(req.body);
+        req.body.isPending = true;
+        // req.body.expireAt.index.expires = '5m';
+        var user = await User.create(req.body);
+        const requestUrl = `${req.protocol}://${req.get('host')}/users/${user._id}`;
+        const message = `Hi ${user.name},\n\nClick the following link to verify your account\n\n${requestUrl}`;
+
+        await sendMail({
+            email: user.email,
+            subject: 'E-mail verification',
+            message
+        });
 
         res.status(200).json({
             success: true, 
+            data: 'Email sent'
         });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -226,7 +265,6 @@ exports.updateProfilePicture = async (req,res,next)=>{
         });
         
     } catch (error) {
-        console.log("Error=>"+error);
         next(error);
     }
 };
@@ -244,7 +282,6 @@ exports.addToCart = async (req,res,next)=>{
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
         }
-
 
         user.cart.forEach(element => {
             if(req.params.subjectid == element.subject){
@@ -276,6 +313,26 @@ exports.addToCart = async (req,res,next)=>{
         
     } catch (error) {
         next(error);
+    }
+};
+
+//PUT update user
+//URL /
+//Private
+exports.verifyUser = async (req,res,next)=>{
+    try {
+        req.body.isPending = false;
+        const user = await User.findByIdAndUpdate(req.params.userid, req.body, {
+            new: true,
+            runValidators: true
+        });
+        if(!user){
+            res.status(404).sendFile(path.join(process.cwd()+'/utils/error.html'));
+        }
+        res.status(200).sendFile(path.join(process.cwd()+'/utils/index.html'));
+        
+    } catch (error) {
+        res.status(404).sendFile(path.join(process.cwd()+'/utils/error.html'));
     }
 };
 
