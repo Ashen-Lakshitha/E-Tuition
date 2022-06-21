@@ -1,6 +1,6 @@
 const mongoose =require('mongoose');
 
-const SingleChat =mongoose.model('SingleChat',{
+const SingleChat = new mongoose.model('SingleChat',{
     uniqchatid:{
         type:String,
         required:true
@@ -33,7 +33,7 @@ const SingleChat =mongoose.model('SingleChat',{
 
 });
 
-const UserMsg = mongoose.model('UserMsg',{
+const UserMsg = new mongoose.model('UserMsg',{
     uniqeCID:{
         type: String,
         required:true
@@ -65,14 +65,17 @@ const UserMsg = mongoose.model('UserMsg',{
 })
 module.exports ={UserMsg,SingleChat}
 
+// module.exports = mongoose.model("chatmsg",UserMsg);
+// module.exports = mongoose.model("singlechat",SingleChat);
+
+
+
+
+
+
 // module.exports ={ChatMsg,ChatUniq,UserMsg}
-
 // const mongoose =require('mongoose');
-
-
-
 // const UserMsg = new mongoose.Schema({
-
 //     teacher:{
 //         type: mongoose.Schema.ObjectId,
 //         ref: 'User'
@@ -102,4 +105,3 @@ module.exports ={UserMsg,SingleChat}
 //     },
 // })
 
-// module.exports = mongoose.model("chatmsg",UserMsg);
