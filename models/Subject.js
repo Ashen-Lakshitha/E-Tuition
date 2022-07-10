@@ -8,7 +8,8 @@ const SubjectSchema = new mongoose.Schema({
             'Technology',
             'Art',
             'Commerce'
-        ]
+        ],
+        required:[true, 'Please add a stream']
     },
     subject: {
         type: String,
@@ -25,6 +26,7 @@ const SubjectSchema = new mongoose.Schema({
     },
     subtopic: {
         type: String,
+        default: null,
         trim : true
     },
     type:{
@@ -35,7 +37,8 @@ const SubjectSchema = new mongoose.Schema({
             "Group class",
             "Revision",
             "Paper class"
-        ]
+        ],
+        required:[true, 'Please add a type']
     },
     description: {
         type: String,
@@ -46,18 +49,28 @@ const SubjectSchema = new mongoose.Schema({
         required: [true, 'Please add a tuition cost']
     },
     period:{
-        type: String,
-        enum: [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday"
-        ]
+            day: {
+                type: String,
+                enum: [
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday"
+                ]
+            },
+            time: String
     },
-    maxStudents: Number,
+    payDate: {
+        type:String,
+        required: [true, 'Please add a pay date']
+    },
+    maxStudents: {
+        type: Number,
+        required: [true, 'Please add a max students']
+    },
     createdAt: {
         type: Date,
         default: Date.now()
@@ -76,13 +89,16 @@ const SubjectSchema = new mongoose.Schema({
             },
             payment: [
                 {
-                    date: Date,
-                    month: Date,
-                    year: Date,
+                    date:{ 
+                        type: Date,
+                        default: Date.now()
+                    },
                     isPaid:{
                         type : Boolean,
-                        default: false
-                    }
+                        default: true
+                    },
+                    amount: Number,
+                    paymentType:String
                 }
             ],
             isEnrolled:{

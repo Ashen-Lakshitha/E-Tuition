@@ -4,9 +4,9 @@ const {
     getQuiz,
     createQuiz,
     updateQuiz,
-    updateQuestion,
     deleteQuiz,
-    deleteQuestion
+    submitQuiz,
+    getAnswers
 } = require('../controllers/quiz');
 
 const router = express.Router({mergeParams:true});
@@ -19,11 +19,11 @@ router.use('/answers', ansRoute);
 const { protect, authorize } = require('../middleware/auth');
 
 router
-    .route('/sub/:subjectid')
-    .get(protect, getQuizzes);
+    .route('/')
+    .get(protect, authorize("teacher"), getQuizzes);
     
 router.route('/')
-    .post(protect, authorize('teacher'), createQuiz);
+    .post(protect, authorize("teacher"), createQuiz);
     
 router
     .route('/:quizid')
@@ -32,8 +32,11 @@ router
     .delete(protect, authorize('teacher'), deleteQuiz);
 
 router
-    .route('/:quizid/:questionid')
-    .put(protect, authorize('teacher'), updateQuestion)
-    .delete(protect, authorize('teacher'), deleteQuestion);
+    .route('/:quizid/submit')
+    .put(protect, authorize('student'), submitQuiz);
+
+router
+    .route('/:quizid/answers')
+    .get(protect, getAnswers);
 
 module.exports = router;

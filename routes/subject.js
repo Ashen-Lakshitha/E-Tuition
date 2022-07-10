@@ -11,16 +11,23 @@ const {
     updateClassPoster,
     enrollStudent,
     unEnrollStudent,
+    payClass,
     deleteSubject,
 } = require('../controllers/subject');
 
 const reviewRouter = require('./reviews');
+const quizRouter = require('./quiz');
+const chatRouter = require('./test');
+const lmsRouter = require('./lms');
 
 const router = express.Router({mergeParams: true});
 
 const { protect, authorize, verify } = require('../middleware/auth');
 
 router.use('/:subjectid/reviews',reviewRouter);
+router.use('/:subjectid/quiz',quizRouter);
+router.use('/:subjectid/msges', chatRouter);
+router.use('/:subjectid/lms', lmsRouter);
 
 router
     .route('/')
@@ -44,6 +51,10 @@ router
 router
     .route('/:subjectid/unenroll')
     .put(protect, authorize('student'), unEnrollStudent);
+
+router
+    .route('/:subjectid/pay')
+    .put(protect, payClass);
 
 router
     .route('/:subjectid/post')

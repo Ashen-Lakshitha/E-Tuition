@@ -70,14 +70,16 @@ const UserSchema = new mongoose.Schema({
             },
             payment: [
                 {
-                    date: Date,
-                    month: Date,
-                    year: Date,
+                    date:{ 
+                        type: Date,
+                        default: Date.now()
+                    },
                     isPaid:{
                         type : Boolean,
-                        default: false
+                        default: true
                     },
-                    amount: Number
+                    amount: Number,
+                    paymentType:String
                 }
             ],
             isEnrolled: {
@@ -104,11 +106,6 @@ const UserSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    expireAt: {
-        type: Date,
-        default: Date.now(),
-        index: { expires: 60 },
-      },
 },{timestamps: true});
 
 //hash the password when create  or update a document

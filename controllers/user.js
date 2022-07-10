@@ -11,7 +11,7 @@ const sendMail = require('../utils/sendEmail');
 exports.getTeachers = async (req,res,next)=>{
     try {
         if(req.query.name == null){
-            const teachers = await User.find({role : 'teacher'});
+            const teachers = await User.find({role : 'teacher',isPending: false});
             res
                 .status(200)
                 .json({
@@ -65,20 +65,37 @@ exports.getStudents = async (req,res,next)=>{
 
 //GET get single user
 //URL /:userid
-//Private admin only
+//Private admin teacher only
 exports.getUser = async (req,res,next)=>{
     try {
-        const user = await User.findById(req.params.userid).where({isPending: false});
+        if(req.user.role == 'admin'){
+            const user = await User.findById(req.params.userid);
+
+            if(user.role == 'teacher'){
+                const subjects = await Subject.find({teacher: req.params.id});
+                res.status(200).json({
+                    success: true, 
+                    data: [user, subjects]
+                });
+            }else{
+                res.status(200).json({
+                    success: true, 
+                    data: user
+                });
+            }
+            
+        }else{
+            const user = await User.findById(req.params.userid).where({isPending: false});
         
-        if(!user){
-            return next(new ErrorResponse(`User not found`, 404));
-        }
-        
-        res.status(200).json({
-            success: true, 
-            data: user
-        });
-        
+            if(!user){
+                return next(new ErrorResponse(`User not found`, 404));
+            }
+            
+            res.status(200).json({
+                success: true, 
+                data: user
+            });
+        }   
     } catch (error) {
         next(error);
     }
@@ -130,6 +147,28 @@ exports.getCart = async (req,res,next)=>{
         next(error);
     }
 }
+
+//Get payment details
+//URL /payments
+//Private
+exports.getPayments = async (req,res,next)=>{
+    try {   
+        const user = await User.findById(req.user.id).populate({
+            path: 'enrolledSubjects',
+            populate:({
+                path:'subject',
+                select: 'stream subject subtopic type fee post', 
+            })
+        });
+
+        res.status(200).json({
+            success: true,
+            data: user.enrolledSubjects
+        });
+    }catch (error) {
+        next(error);
+    }
+};
 
 //POST create Teacher
 //URL /regteacher
@@ -265,6 +304,7 @@ exports.updateProfilePicture = async (req,res,next)=>{
         });
         
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };
