@@ -116,7 +116,6 @@ exports.forgotPwd = async (req,res,next)=>{
     try {
         await sendMail({
             email: user.email,
-            // email:'nadunnethsara456@gmail.com',
             subject: 'Password Reset Token',
             message
         });

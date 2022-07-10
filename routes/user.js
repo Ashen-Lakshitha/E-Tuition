@@ -2,19 +2,20 @@ const express = require('express');
 const upload = require('../middleware/multer');
 
 const {
-    createTeacher,
-    createStudent,
+    getUser,
     getTeachers,
     getStudents,
-    getUser,
-    updateUser,
-    updateProfilePicture,
-    deleteUser,
+    getPayments,
     getMyEnrolledClasses,
     getCart,
+    createTeacher,
+    createStudent,
+    updateUser,
+    verifyUser,
     addToCart,
+    updateProfilePicture,
+    deleteUser,
     removeFromCart,
-    verifyUser
 } = require('../controllers/user');
 
 const router = express.Router();
@@ -32,6 +33,7 @@ router.get("/teachers", getTeachers );
 router.get("/students", protect, authorize("admin", "teacher"), getStudents);
 router.get('/myclasses',protect, authorize("student"), getMyEnrolledClasses );
 router.get('/cart',protect, authorize("student"), getCart );
+router.get('/payments',protect, getPayments );
 router.get('/:userid',protect, authorize("admin", "teacher"), getUser );
 
 router.post('/regteacher',upload.single('verifications'), createTeacher);
