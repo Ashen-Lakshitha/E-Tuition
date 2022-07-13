@@ -1,48 +1,27 @@
 const express = require('express');
+const imageUpload = require('../middleware/multer');
+
 const {
-    getclassmaterials,
-    createclassmaterials,
-    updateclassmaterials,
-    deleteclassmaterials,
+    getLms,
+    createLms,
+    addClassMaterials,
+    updateLms,
+    updateClassMaterials,
+    deleteClassMaterials,
+    deleteLms
 } = require('../controllers/lms');
 
-const router = express.Router();
-
+//get subject's " const lmsRoute = require('./lms')" "
+const router = express.Router({mergeParams: true});
 //Security
 const { protect } = require('../middleware/auth');
 
-router.get('/',protect, getclassmaterials);
-router.post('/',protect,createclassmaterials);
-router.put('/:lmsid',protect, updateclassmaterials );
-router.delete('/:lmsid',protect, deleteclassmaterials );
-
-// router.post('/',(req,res)=>{
-//     const clsmat = new lmsSchema({
-//         mtitle: req.body.mtitle,
-//         content: req.body.stitle,
-//         content : [{
-//             stitle : req.body.stitle,
-//             document : req.body.document,
-//         }],
-//         description: req.body.description,
-//     });
-//     clsmat.save((err,data)=>{
-//         res.status(200).json({code:200,clsmat:"class materials save successfully",clsmatData:data});
-//     })
-// });
-
-
-
-
-// router.get('/',(req,res)=>{
-//     lmsSchema.find({},(err,data)=>{
-//         if(!err){
-//             res.send(data);
-//             console.log(data.length);
-//         }else{
-//             console.log(err);
-//         }
-//     })
-// });
+router.get('/',protect, getLms);
+router.post('/',protect,createLms);
+router.post('/:lmsid/lmsdoc',protect, imageUpload.single('documents'), addClassMaterials );
+router.put('/:lmsid', protect, updateLms);
+router.put('/:lmsid/lmsdoc/:docid', protect, updateClassMaterials);
+router.delete('/:lmsid/lmsdoc/:docid', protect, deleteClassMaterials)
+router.delete('/:lmsid',protect, deleteLms);
 
 module.exports = router;
