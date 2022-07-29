@@ -1,62 +1,134 @@
-const chatmsg = require('../models/chatmsg');
+const Test = require("../models/chatmsg");
 const User = require('../models/User');
-const ErrorResponse = require('../utils/errorResponse');
-const {uploadFiles, deleteFile} = require('../utils/service');
+const Subject = require('../models/Subject');
+// const ErrorResponse = require('../utils/errorResponse');
+// const {uploadFiles, deleteFile} = require('../utils/service');
 
-const { UserMsg , SingleChat } = require("../models/chatmsg");
+
+exports.myChats = async(req,res,next)=>{
+    try {
+        let chats;
+        if(req.user.role == "student"){
+            chats = await Test.find({student: req.user._id}).populate({
+                path: 'teacher',
+                select: 'name photo'
+            }).populate({
+                path: 'subject',
+                select: 'subject'
+            });
+        }else{
+            chats = await Test.find({teacher: req.user._id}).populate({
+                path: 'student',
+                select: 'name photo'
+            }).populate({
+                path: 'subject',
+                select: 'subject'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: chats
+        });
+    } catch (error) {
+        next(error);
+    }
+}
 
 //Create messages ?
-exports.createMsg =  async(req,res,next)=>{
+exports.createChat =  async(req,res,next)=>{
     try{
-        const msg = new UserMsg({
-            uniqeCID :req.body.uniqeCID,
-            sender:req.body.sender,
-            receiver:req.body.receiver,
-            msg:req.body.msg,
-            time:req.body.time,
-            seen:req.body.seen,
-            delivered:req.body.delivered
-        });
-        const respnse = await msg.save((err,data)=>{
-            res.status(200).json({code:200,msg:"msg saved succesfuly",msgData:data});
-        })
-        
+        if(req.user.role == 'student'){
+            const chat = await Test.findOne({subject: req.params.subjectid, student: req.user._id});
+            if(chat == null){
+                try {
+                    const subject = await Subject.findById(req.params.subjectid);
+                    req.body.teacher = subject.teacher;
+                    req.body.student = req.user._id;
+                    req.body.subject = req.params.subjectid;
+                    req.body.msg.role = req.user.role;
 
-        //    const msgDate = req.body;
+                    await Test.create(req.body);
+                    res.status(200).json({
+                        success: true
+                    });
+                } catch (error) {
+                    next(error);
+                }
+            }else{
+                try {
+                    req.body.msg.role = req.user.role;
+                    await chat.msg.push(req.body.msg);
+                    await chat.save();
+                    res.status(200).json({
+                        success: true
+                    });
+                } catch (error) {
+                    next(error);
+                }
+            }
+        }else{
+            const chat = await Test.findOne({subject: req.params.subjectid, teacher: req.user._id});
+            if(chat == null){
+                try {
+                    const subject = await Subject.findById(req.params.subjectid);
+                    req.body.teacher = req.user._id;
+                    // req.body.student = req.user._id;
+                    req.body.subject = req.params.subjectid;
+                    req.body.msg.role = req.user.role;
 
-        //    await msgDate.save((data)=>{
-        //             res.status(200).json({
-        //                 success: true,
-        //                 data: msgDate
-        //             });
-        //     });
-
-        // req.body.user = req.user.id;
-        //  const messages = await chatmsg.create(req.body);
-    
-        // res.status(200).json(message);
-
-        // let id  = req.params
-        // const message = await UserMsg.find( {uniqeCID : id});
-        // console.log(message);
-
+                    await Test.create(req.body);
+                    res.status(200).json({
+                        success: true
+                    });
+                } catch (error) {
+                    next(error);
+                }
+            }else{
+                try {
+                    req.body.msg.role = req.user.role;
+                    await chat.msg.push(req.body.msg);
+                    await chat.save();
+                    res.status(200).json({
+                        success: true
+                    });
+                } catch (error) {
+                    next(error);
+                }
+            }
+        }
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
 
 //get unique chat documents ?
-exports.findUniqueChat = async (req,res,next)=>{ 
+exports.viewUniqueChat = async (req,res,next)=>{ 
+    console.log("Step1");
     try{ 
-        const qurey={$or:[{"uniqeCID": req.body.ab},{"uniqeCID":req.body.ba}]}; 
- 
-        const response = await UserMsg.find(qurey); 
-
-        res.send(response); 
-                console.log(response.length); 
-
+        if(req.user.role == "student"){
+            console.log("Step2");
+            const chat = await Test.findOne({subject: req.params.subjectid, student: req.user._id}).populate({
+                path: 'teacher',
+                select: 'name'
+            });
+            res.status(200).json({
+                success: true,
+                data: chat.msg
+            })
+            
+        }else{
+            console.log("Step3");
+            const chat = await Test.findOne({subject: req.params.subjectid, teacher: req.user._id}).populate({
+                path: 'student',
+                select: 'name'
+            });
+            res.status(200).json({
+                success: true,
+                data: chat.msg
+            })
+        }
      }catch(error) { 
+        console.log(error)
          next(error); 
      } 
 }

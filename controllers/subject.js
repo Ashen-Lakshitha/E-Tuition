@@ -137,7 +137,47 @@ exports.getMySubjects = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}
+};
+
+//GET get payments in the class
+//URL /subjects/:subjectid/getpayments
+//Private teacher only
+exports.getPayments = async (req,res,next)=>{
+    try {
+        let students = [];
+        let month = req.query.date.split("-")[1];
+        let year = req.query.date.split("-")[0];
+
+        const subject = await Subject.findById(req.params.subjectid).populate({
+            path: 'teacher',
+            select: "title name email phone school qualifications photo"
+            }).populate({
+                path: 'enrolledStudents',
+                populate: {
+                    path:  'student',
+                    select: "name email "}
+            });
+        subject['enrolledStudents'].forEach(element => {
+            element.payment.forEach((payment) => {
+                if(month.startsWith(payment.date.toString().split(' ')[1]) && payment.date.toString().split(' ')[3] == year.toString()){
+                    students.push({_id:element['student']['_id'], name:element['student']['name'], email: element['student']['email'], payment});
+                }
+            });
+        });
+
+        res
+            .status(200)
+            .json({
+                success: true, 
+                data: {
+                    students, 
+                    total: subject['enrolledStudents'].length, 
+                    pcount: students.length}
+            });
+    } catch (error) {
+        next(error);
+    }
+};
 
 //POST create subject(teacher add class)
 //URL /subjects
@@ -250,7 +290,7 @@ exports.updateClassPoster = async (req,res,next)=>{
 //Private students only
 exports.enrollStudent = async (req,res,next)=>{
     try {
-        var isEnrolled;
+        var isEnrolled = false;
         const subject = await Subject.findById(req.params.subjectid);
         const user = await User.findById(req.user.id);
 
@@ -260,6 +300,69 @@ exports.enrollStudent = async (req,res,next)=>{
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
         }
+
+        if(subject.enrolledStudents.length >= subject.maxStudents){
+            return next(new ErrorResponse(`Class is full`, 400));
+        }
+
+        // if(Date.getDate() > subject.payDate){
+        //     return next(new ErrorResponse(`You have to pay`, 400));
+        // }
+
+        user.enrolledSubjects.forEach(element => {
+            if(element.subject == req.params.subjectid){
+               isEnrolled = true;
+            }
+        });
+
+        if(!isEnrolled){
+            await user.enrolledSubjects.push(req.body);
+            await user.save();
+
+            await User.findByIdAndUpdate({"_id": req.user.id}, 
+            {"$pull": {"cart": {"subject": req.params.subjectid}}});
+            
+            await subject.enrolledStudents.push(req.body);
+            await subject.save();
+
+            res.status(200).json({
+                success: true, 
+            });
+        }else if(isEnrolled){
+            return next(new ErrorResponse(`User is already enrolled`, 400));
+        }
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+
+//PUT enroll to subject
+//URL subjects/:subjectid/:userid/enroll
+//Private teachers only
+exports.enrollStudentByTeacher = async (req,res,next)=>{
+    try {
+        var isEnrolled = false;
+        const subject = await Subject.findById(req.params.subjectid);
+        const user = await User.findById(req.params.userid);
+
+        req.body.subject = req.params.subjectid;
+        req.body.student = req.params.userid;
+
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found`, 404));
+        }
+
+        if(subject.enrolledStudents.length >= subject.maxStudents){
+            return next(new ErrorResponse(`Class is full`, 400));
+        }
+
+        // if(Date.now() > subject.payDate){
+        //     return next(new ErrorResponse(`You have to pay`, 400));
+        // }
+
         user.enrolledSubjects.forEach(element => {
             if(element.subject == req.params.subjectid){
                isEnrolled = true;
@@ -311,6 +414,88 @@ exports.unEnrollStudent = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+//PUT pay for class
+//URL /:subjectid/pay
+//Private
+exports.payClass = async(req,res,next) => {
+    try{
+        var isEnrolled = false;
+        var subject = await Subject.findById(req.params.subjectid);
+        var user = await User.findById(req.user._id);
+
+        req.body.subject = req.params.subjectid;
+        req.body.student = req.user._id;
+
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found`, 404));
+        }
+        
+        user.enrolledSubjects.forEach(element => {
+            if(element.subject == req.params.subjectid){
+               isEnrolled = true;
+            }
+        });
+
+        if(subject.enrolledStudents.length >= subject.maxStudents){
+            return next(new ErrorResponse(`Class is full`, 400));
+        }
+
+
+        if(!isEnrolled){
+            req.body.subject = req.params.subjectid;
+            req.body.student = req.user.id;
+            await user.enrolledSubjects.push(req.body);
+            await user.save();
+
+            await User.findByIdAndUpdate({"_id": req.user.id}, 
+            {"$pull": {"cart": {"subject": req.params.subjectid}}});
+            
+            await subject.enrolledStudents.push(req.body);
+            await subject.save();
+
+            user.enrolledSubjects.forEach(async (element) => {
+                if(element.subject == req.params.subjectid){
+                    await element.payment.push(req.body);
+                    await user.save();
+                }
+            });
+            subject.enrolledStudents.forEach(async (element) => {
+                if(element.student == req.user._id){
+                    await element.payment.push(req.body);
+                    await subject.save();
+                }
+            });
+
+            res.status(200).json({
+                success: true, 
+            });
+
+        }else if(isEnrolled){
+            user.enrolledSubjects.forEach(async (element) => {
+                if(element.subject == req.params.subjectid){
+                    await element.payment.push(req.body);
+                    await user.save();
+                }
+            });
+            subject.enrolledStudents.forEach(async (element) => {
+                if(element.student == req.user.id){
+                    await element.payment.push(req.body);
+                    await subject.save();
+                }
+            });
+        
+            res.status(200).json({
+                success: true, 
+            });
+            
+        }
+
+    }catch(error){
         console.log(error);
         next(error);
     }

@@ -6,21 +6,30 @@ const {
     getSubject,
     getSubjectPublic,
     getMySubjects,
+    getPayments,
     createSubject,
     updateSubject,
     updateClassPoster,
     enrollStudent,
+    enrollStudentByTeacher,
     unEnrollStudent,
+    payClass,
     deleteSubject,
 } = require('../controllers/subject');
 
 const reviewRouter = require('./reviews');
+const quizRouter = require('./quiz');
+const chatRouter = require('./index');
+//const lmsRouter = require('./lms');
 
 const router = express.Router({mergeParams: true});
 
 const { protect, authorize, verify } = require('../middleware/auth');
 
 router.use('/:subjectid/reviews',reviewRouter);
+router.use('/:subjectid/quiz',quizRouter);
+router.use('/:subjectid/msges', chatRouter);
+//router.use('/:subjectid/lms', lmsRouter);
 
 router
     .route('/')
@@ -37,18 +46,30 @@ router
     .put(protect, authorize('teacher'), updateSubject)
     .delete(protect, authorize('teacher'), deleteSubject);  
 
-router
-    .route('/:subjectid/enroll')
-    .put(protect, authorize('student'), verify, enrollStudent);
+// router
+//     .route('/:subjectid/getpayments')
+//     .get(protect, authorize('teacher'), getPayments);
 
-router
-    .route('/:subjectid/unenroll')
-    .put(protect, authorize('student'), unEnrollStudent);
+// router
+//     .route('/:subjectid/enroll')
+//     .put(protect, authorize('student'), verify, enrollStudent);
 
-router
-    .route('/:subjectid/post')
-    .put(protect, authorize('teacher'), upload.single('post'), updateClassPoster);
+// router
+//     .route('/:subjectid/unenroll')
+//     .put(protect, authorize('student'), unEnrollStudent);
 
-router.route('/public/:subjectid').get(getSubjectPublic)
+// router
+//     .route('/:subjectid/pay')
+//     .put(protect, payClass);
+
+// router
+//     .route('/:subjectid/post')
+//     .put(protect, authorize('teacher'), upload.single('post'), updateClassPoster);
+
+// router
+//     .route('/:subjectid/:userid/enroll')
+//     .put(protect, authorize('teacher'), enrollStudentByTeacher);
+
+// router.route('/public/:subjectid').get(getSubjectPublic)
 
 module.exports = router;
