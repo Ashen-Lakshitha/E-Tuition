@@ -88,7 +88,8 @@ const QuizSchema = new mongoose.Schema({
                     question: String,
                     answer: Number
                 }
-            ]
+            ],
+            totalMarks:Number
         }
     ],
     description:{

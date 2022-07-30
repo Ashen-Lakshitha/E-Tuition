@@ -8,6 +8,7 @@ const {
     updateUser,
     verifyTeacher,
     deleteUser,
+    deleteClass
 } = require('../controllers/admin');
 
 const router = express.Router();
@@ -23,6 +24,8 @@ router.get('/req',protect, authorize("admin"), getSignupReq );
 router.put('/:userid/verify', protect, authorize('admin'), verifyTeacher)
 router.put('/:userid',protect, authorize('admin'), updateUser );
 
-router.delete('/:userid', protect, authorize('admin'), deleteUser );
+router.delete('/user/:userid', protect, authorize('admin'), deleteUser );
+
+router.delete('/subject/:subjectid', protect, authorize('admin'), deleteClass);
 
 module.exports = router;

@@ -18,7 +18,10 @@ const SubjectSchema = new mongoose.Schema({
         maxlength: 50
     },
     post:{
-        id : String,
+        id : {
+            type:String,
+            default: null
+        },
         name : String,
         mimeType : String,
         webViewLink : String,
@@ -91,7 +94,7 @@ const SubjectSchema = new mongoose.Schema({
                 {
                     date:{ 
                         type: Date,
-                        default: Date.now()
+                        default: Date()
                     },
                     isPaid:{
                         type : Boolean,

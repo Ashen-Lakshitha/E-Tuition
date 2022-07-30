@@ -20,7 +20,7 @@ exports.getTeachers = async (req,res,next)=>{
                     data: teachers
                 });
         }else{
-            const teachers = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher', isPending: false}).select('name');
+            const teachers = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher', isPending: false});
             res
                 .status(200)
                 .json({
@@ -49,7 +49,7 @@ exports.getStudents = async (req,res,next)=>{
                     data: students
                 });
         }else{
-            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false}).select('name');
+            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false});
             res
                 .status(200)
                 .json({
@@ -68,34 +68,31 @@ exports.getStudents = async (req,res,next)=>{
 //Private admin teacher only
 exports.getUser = async (req,res,next)=>{
     try {
-        if(req.user.role == 'admin'){
-            const user = await User.findById(req.params.userid);
-
-            if(user.role == 'teacher'){
-                const subjects = await Subject.find({teacher: req.params.id});
-                res.status(200).json({
-                    success: true, 
-                    data: [user, subjects]
-                });
-            }else{
-                res.status(200).json({
-                    success: true, 
-                    data: user
-                });
-            }
-            
-        }else{
-            const user = await User.findById(req.params.userid).where({isPending: false});
-        
+            const user = await User.findById(req.params.userid).populate({
+                path:'enrolledSubjects',
+                populate:({
+                    path:'subject',
+                    select:'subject post'
+                })
+            });
             if(!user){
                 return next(new ErrorResponse(`User not found`, 404));
             }
+
+            if(user.role == 'teacher'){
+                const subjects = await Subject.find({teacher: req.params.userid});
+                res.status(200).json({
+                    success: true, 
+                    data: {user, subjects}
+                });
+
+            }else{
+                res.status(200).json({
+                    success: true, 
+                    data: {user}
+                });
+            }
             
-            res.status(200).json({
-                success: true, 
-                data: user
-            });
-        }   
     } catch (error) {
         next(error);
     }
@@ -110,7 +107,11 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
             path: 'enrolledSubjects',
             populate:({
                 path:'subject',
-                select: 'stream subject subtopic type fee post', 
+                select: 'stream teacher subject subtopic type fee post averageRating',
+                populate:({
+                    path: 'teacher',
+                    select: 'name'
+                }) 
             })
         });
 
@@ -304,7 +305,6 @@ exports.updateProfilePicture = async (req,res,next)=>{
         });
         
     } catch (error) {
-        console.log(error)
         next(error);
     }
 };

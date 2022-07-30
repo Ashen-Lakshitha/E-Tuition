@@ -70,7 +70,7 @@ exports.getStudents = async (req,res,next)=>{
 //Private admin only
 exports.getSignupReq = async (req, res, next) => {
     try {
-        const student = await User.find({isPending: true});
+        const student = await User.find({role: 'teacher', isPending: true});
 
         res.status(200).json({
            success: true,
@@ -102,7 +102,7 @@ exports.updateUser = async (req,res,next)=>{
 };
 
 //PUT update user
-//URL /:userid
+//URL /:userid/verify
 //Private admin only
 exports.verifyTeacher = async (req,res,next)=>{
     try {
@@ -122,7 +122,7 @@ exports.verifyTeacher = async (req,res,next)=>{
 };
 
 //DELETE delete user
-//URL /
+//URL /user/:userid
 //Private
 exports.deleteUser = async (req,res,next)=>{
     try {
@@ -137,3 +137,21 @@ exports.deleteUser = async (req,res,next)=>{
         next(error);
     };
 };
+
+//DELETE delete subject
+//URL /subject/:subjectid
+//Private
+exports.deleteClass = async (req,res,next)=>{
+    try {
+        await Subject.findByIdAndDelete(req.params.subjectid);
+
+        res.status(200).json({
+            success: true, 
+            data: {} 
+        });
+        
+    } catch (error) {
+        next(error);
+    };
+};
+

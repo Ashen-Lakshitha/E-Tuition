@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const mongoSanitize = require('express-mongo-sanitize');
+// const { admin } = require('./utils/firebase');
 
 
 const connectDB = require('./config/database');
@@ -24,6 +25,8 @@ const quiz = require('./routes/quiz');
 const assignment = require('./routes/assignment');
 const lms = require('./routes/lms');
 const reviews = require('./routes/reviews');
+const complain = require('./routes/complain');
+const message = require('./routes/test');
 const admin = require('./routes/admin');
 const notification=require('./routes/notification');
 
@@ -49,14 +52,13 @@ app.use(mongoSanitize());
 app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
-app.use('/msges', index);
-app.use('/quizzes', quiz);
+app.use('/quiz', quiz);
 app.use('/reviews', reviews);
-app.use('/admin', admin);
+app.use('/admin', adminr);
+app.use('/complain', complain);
+app.use('/msges', message);
 app.use('/lms', lms);
-app.use('/assignment', assignment)
 
-app.use('/notifications',notification),
 //errorHhandler middleware
 app.use(errorHandler);
 

@@ -43,7 +43,7 @@ exports.authorize = (...roles) =>{
 //Check verified users
 exports.verify = (req,res,next) =>{
     if(req.user.isPending){
-       return next(new ErrorResponse(`User is not verified`, 404));
+       return next(new ErrorResponse(`User is not verified`, 403));
     }
      next();  
 }
