@@ -1,5 +1,5 @@
-const Subject = require('../models/Subject');
-const User = require('../models/User');
+const Quiz = require('../models/Quiz');
+const Assignment = require('../models/Assignment');
 const Lms = require('../models/Lms');
 const ErrorResponse = require('../utils/errorResponse');
 const {uploadFiles, deleteFile} = require('../utils/service');
@@ -113,6 +113,7 @@ exports.addClassMaterials = async (req, res, next) => {
         }
         
     }catch(error){
+        console.log(error);
         next(error);
     }
 };
@@ -122,21 +123,33 @@ exports.addClassMaterials = async (req, res, next) => {
 // //Private teacher only
 exports.deleteLms = async (req,res,next)=>{
     try {
-        const lms = await Lms.findById(req.params.lmsid);
+        const lms = await Lms.findById(req.params.lmsid).populate({
+            path:'subject',
+            select:'teacher'
+        });
 
         if(!lms){
-            return next(new ErrorResponse(`class materials not found id with ${req.params.lmsid}`, 404));
+            return next(new ErrorResponse(`Not found}`, 404));
         }
 
         //make sure user is subject owner
-        if(lms.teacher.toString() !== req.user.id){
+        if(lms.subject.teacher.toString() !== req.user.id){
             return next(
                 new ErrorResponse(
-                    `User ${req.user.id} is not authorized to delete a class`, 
+                    `User is not authorized`, 
                     401
                 )
             );
         }
+
+        lms.content.forEach(async(element) =>{
+            if(element.uploadType == 'assignment'){
+                await Assignment.findOneAndDelete({assignmentId:element._id});
+            }
+            if(element.uploadType == 'quizzez'){
+                await Quiz.findByIdAndDelete(element._id);
+            }
+        });
         await lms.remove();
 
         res.status(200).json({
@@ -154,22 +167,29 @@ exports.deleteLms = async (req,res,next)=>{
 // //Private teacher only
 exports.deleteClassMaterials = async (req,res,next)=>{
     try {
-        const lms = await Lms.findById(req.params.lmsid);
+        const lms = await Lms.findById(req.params.lmsid).populate({
+            path:'subject',
+            select:'teacher'
+        });
 
         if(!lms){
-            return next(new ErrorResponse(`class materials not found id with ${req.params.lmsid}`, 404));
+            return next(new ErrorResponse(`Not found`, 404));
         }
 
         //make sure user is subject owner
-        if(lms.teacher.toString() !== req.user.id){
+        if(lms.subject.teacher.toString() !== req.user.id){
             return next(
                 new ErrorResponse(
-                    `User ${req.user.id} is not authorized to delete a class`, 
+                    `User is not authorized`, 
                     401
                 )
             );
         }
-        await lms.remove();
+        
+        await Lms.findByIdAndUpdate({"_id": req.params.lmsid}, 
+          {"$pull": {"content": {"_id": req.params.docid}}});
+
+        await Assignment.findOneAndDelete({assignmentId:req.params.docid});
 
         res.status(200).json({
             success: true, 
