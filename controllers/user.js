@@ -62,7 +62,7 @@ exports.getStudents = async (req,res,next)=>{
         next(error);
     }
 };
-
+ 
 //GET get single user
 //URL /:userid
 //Private admin teacher only

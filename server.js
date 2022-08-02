@@ -19,6 +19,8 @@ const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
 const quiz = require('./routes/quiz');
+const assignment = require('./routes/assignment');
+const lms = require('./routes/lms');
 const reviews = require('./routes/reviews');
 const admin = require('./routes/admin');
 
@@ -47,6 +49,8 @@ app.use('/users', users);
 app.use('/quizzes', quiz);
 app.use('/reviews', reviews);
 app.use('/admin', admin);
+app.use('/lms', lms);
+app.use('/assignment', assignment)
 
 //errorHhandler middleware
 app.use(errorHandler);
