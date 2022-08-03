@@ -25,6 +25,7 @@ const assignment = require('./routes/assignment');
 const lms = require('./routes/lms');
 const reviews = require('./routes/reviews');
 const admin = require('./routes/admin');
+const notification=require('./routes/notification');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -55,6 +56,7 @@ app.use('/admin', admin);
 app.use('/lms', lms);
 app.use('/assignment', assignment)
 
+app.use('/notifications',notification),
 //errorHhandler middleware
 app.use(errorHandler);
 
