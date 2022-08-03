@@ -9,7 +9,7 @@ const sendMail = require('../utils/sendEmail');
 exports.loginUser = async (req,res,next)=>{
     try {
         const {email, password} = req.body;
-
+        console.log(email);
         //validate email and password
         if(!email){
             return next(new ErrorResponse('Please enter an email', 401));
@@ -176,6 +176,7 @@ const sendTokenResponse = (user, statusCode, res)=>{
             success: true, 
             token,
             role: user.role,
-            cart: user.cart.length
+            cart: user.cart.length,
+            id: user._id 
         });
 }

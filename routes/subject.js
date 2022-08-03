@@ -6,10 +6,12 @@ const {
     getSubject,
     getSubjectPublic,
     getMySubjects,
+    getPayments,
     createSubject,
     updateSubject,
     updateClassPoster,
     enrollStudent,
+    enrollStudentByTeacher,
     unEnrollStudent,
     payClass,
     deleteSubject,
@@ -17,8 +19,9 @@ const {
 
 const reviewRouter = require('./reviews');
 const quizRouter = require('./quiz');
-const chatRouter = require('./test');
-const lmsRouter = require('./lms');
+const chatRouter = require('./index');
+// const lmsRouter = require('./lms');
+const notiRouter = require('./notification');
 
 const router = express.Router({mergeParams: true});
 
@@ -33,7 +36,8 @@ router.use('/:subjectid/lms', lmsRoute);
 router.use('/:subjectid/reviews',reviewRouter);
 router.use('/:subjectid/quiz',quizRouter);
 router.use('/:subjectid/msges', chatRouter);
-router.use('/:subjectid/lms', lmsRouter);
+//router.use('/:subjectid/lms', lmsRouter);
+router.use('/:subjectid/notifications', notiRouter);
 
 router
     .route('/')
@@ -51,12 +55,12 @@ router
     .delete(protect, authorize('teacher'), deleteSubject);  
 
 router
-    .route('/:subjectid/enroll')
-    .put(protect, authorize('student'), verify, enrollStudent);
+    .route('/:subjectid/getpayments')
+    .get(protect, authorize('teacher'), getPayments);
 
 router
-    .route('/:subjectid/unenroll')
-    .put(protect, authorize('student'), unEnrollStudent);
+    .route('/:subjectid/enroll')
+    .put(protect, authorize('student'), verify, enrollStudent);
 
 router
     .route('/:subjectid/pay')
@@ -65,6 +69,10 @@ router
 router
     .route('/:subjectid/post')
     .put(protect, authorize('teacher'), upload.single('post'), updateClassPoster);
+
+router
+    .route('/:subjectid/:userid/enroll')
+    .put(protect, authorize('teacher'), enrollStudentByTeacher);
 
 router.route('/public/:subjectid').get(getSubjectPublic)
 
