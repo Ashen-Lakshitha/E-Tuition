@@ -8,7 +8,8 @@ const SubjectSchema = new mongoose.Schema({
             'Technology',
             'Art',
             'Commerce'
-        ]
+        ],
+        required:[true, 'Please add a stream']
     },
     subject: {
         type: String,
@@ -25,6 +26,7 @@ const SubjectSchema = new mongoose.Schema({
     },
     subtopic: {
         type: String,
+        default: null,
         trim : true
     },
     type:{
@@ -35,7 +37,8 @@ const SubjectSchema = new mongoose.Schema({
             "Group class",
             "Revision",
             "Paper class"
-        ]
+        ],
+        required:[true, 'Please add a type']
     },
     description: {
         type: String,
@@ -45,8 +48,7 @@ const SubjectSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Please add a tuition cost']
     },
-    period:[
-        {
+    period:{
             day: {
                 type: String,
                 enum: [
@@ -60,12 +62,18 @@ const SubjectSchema = new mongoose.Schema({
                 ]
             },
             time: String
-        }
-    ],
-    maxStudents: Number,
+    },
+    payDate: {
+        type:String,
+        required: [true, 'Please add a pay date']
+    },
+    maxStudents: {
+        type: Number,
+        required: [true, 'Please add a max students']
+    },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now()
     },
     teacher:{
         type: mongoose.Schema.ObjectId,
@@ -73,47 +81,34 @@ const SubjectSchema = new mongoose.Schema({
         required: true
     },
     averageRating: Number,
-    review: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Review',
-        required: true
-    },
-    
-    /*[
-        {
-            text: String,
-            rate:{
-                type: Number,
-                min: 1,
-                max: 10
-            },
-            student:{
-                type: mongoose.Schema.ObjectId,
-                ref: 'User',
-                required: true
-            }
-        }
-    ],*/
     enrolledStudents:[
         {
             student: {
                 type: mongoose.Schema.ObjectId,
                 ref: 'User'
             },
-            isPaid: {
-                type : Boolean,
-                default: false
-            },
+            payment: [
+                {
+                    date:{ 
+                        type: Date,
+                        default: Date.now()
+                    },
+                    isPaid:{
+                        type : Boolean,
+                        default: true
+                    },
+                    amount: Number,
+                    paymentType:String
+                }
+            ],
             isEnrolled:{
                 type : Boolean,
                 default: true
             },
-            enrolledDate:Date,
-            paidDate:{
+            enrolledDate:{
                 type: Date,
-                default: Date.now
+                default: Date.now()
             },
-            paidMonth:String
         }
     ]
 });

@@ -1,37 +1,44 @@
+const Subject = require('../models/Subject');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
-//POST create user
-//URL /auth/register
-//Public
-// exports.createUser = async (req,res,next)=>{
-//     try {
-//         const user = await User.create(req.body);
-
-//         // res.status(200).json({
-//         //     success: true, 
-//         //     data: user
-//         // });
-//         sendTokenResponse(user, 200, res);
-
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-//GET get all users by role
+//GET get all users count by role
 //URL /
 //Private admin only
 exports.getUsers = async (req,res,next)=>{
 
     try {
-        const users = await User.find({role: req.params.role});
+        const teachers = await User.find({role: "teacher"});
+        const students = await User.find({role: "student"});
+        const subjects = await Subject.find();
         res
             .status(200)
             .json({
                 success: true, 
-                count: users.length,
-                data: users
+                data: [
+                {count: teachers.length},
+                {count: students.length},
+                {count: subjects.length}]
+            });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+//GET get all teachers
+//URL /teachers
+//Private admin only
+exports.getTeachers = async (req,res,next)=>{
+
+    try {
+        const teachers = await User.find({role: "teacher"});
+        res
+            .status(200)
+            .json({
+                success: true, 
+                data: teachers
             });
 
     } catch (error) {
@@ -39,20 +46,54 @@ exports.getUsers = async (req,res,next)=>{
     }
 };
 
-//GET get single user
+//GET get all students
+//URL /students
+//Private admin only
+exports.getStudents = async (req,res,next)=>{
+
+    try {
+        const students = await User.find({role: "student"});
+        res
+            .status(200)
+            .json({
+                success: true, 
+                data: students
+            });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get all requests when sign up
+//URL /req
+//Private admin only
+exports.getSignupReq = async (req, res, next) => {
+    try {
+        const student = await User.find({isPending: true});
+
+        res.status(200).json({
+           success: true,
+           data: student
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+}
+
+//PUT update user
 //URL /:userid
 //Private admin only
-exports.getUser = async (req,res,next)=>{
+exports.updateUser = async (req,res,next)=>{
     try {
-        const user = await User.findById(req.params.userid);
-        
-        if(!user){
-            return next(new ErrorResponse(`User not found id with ${req.params.userid}`, 404));
-        }
+        const user = await User.findByIdAndUpdate(req.params.userid, req.body, {
+            new: true,
+            runValidators: true
+        });
         
         res.status(200).json({
             success: true, 
-            data: user
         });
         
     } catch (error) {
@@ -60,44 +101,19 @@ exports.getUser = async (req,res,next)=>{
     }
 };
 
-//GET get all enrolled classes for a student
-//URL /enrolledclasses
-//Private student only
-exports.getEnrolledClasses = async (req, res, next) => {
-    try {
-        const student = await User.findById(req.user.id).populate({
-            path: 'enrolledSubjects',
-            populate:({
-                path:'subject',
-                select: 'stream fee subject subtopic type', 
-            })
-        });
-        // console.log(student.enrolledSubjects);
-
-        res.status(200).json({
-           success: true,
-           data: student.enrolledSubjects
-        });
-        
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-}
-
 //PUT update user
-//URL /
-//Private
-exports.updateUser = async (req,res,next)=>{
+//URL /:userid
+//Private admin only
+exports.verifyTeacher = async (req,res,next)=>{
     try {
-        const user = await User.findByIdAndUpdate(req.user.id, req.body, {
+        req.body.isPending = false;
+        await User.findByIdAndUpdate(req.params.userid, req.body, {
             new: true,
             runValidators: true
         });
         
         res.status(200).json({
             success: true, 
-            data: user
         });
         
     } catch (error) {
@@ -110,7 +126,7 @@ exports.updateUser = async (req,res,next)=>{
 //Private
 exports.deleteUser = async (req,res,next)=>{
     try {
-        await User.findByIdAndDelete(req.user.id);
+        await User.findByIdAndDelete(req.params.userid);
 
         res.status(200).json({
             success: true, 

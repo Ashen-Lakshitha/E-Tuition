@@ -1,6 +1,7 @@
 const Subject = require('../models/Subject');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
+const {uploadFiles, deleteFile} = require('../utils/service');
 
 //GET get all subjects(student home page)
 //URL /subjects
@@ -143,7 +144,6 @@ exports.getMySubjects = async (req, res, next) => {
 //Private teacher only
 exports.createSubject = async (req,res,next)=>{
     try {
-
         var result = await uploadFiles(req.fileName);
 
         if(result){
@@ -163,14 +163,14 @@ exports.createSubject = async (req,res,next)=>{
             req.body.teacher = req.user.id;
         }
 
-        const subject = await Subject.create(req.body);
+        await Subject.create(req.body);
 
         res.status(200).json({
             success: true, 
-            data: subject
         });
 
     } catch (error) {
+        console.log("error");
         next(error);
     }
 };
@@ -209,12 +209,48 @@ exports.updateSubject = async (req,res,next)=>{
     }
 };
 
+//PUT update class poster
+//URL /:subjectid/post
+//Private
+exports.updateClassPoster = async (req,res,next)=>{
+    try {
+        const subject = await Subject.findById(req.params.subjectid);
+        await deleteFile(subject.post.id);
+        var result = await uploadFiles(req.fileName);
+
+        if(result){
+            var id = result.response['id'];
+            var name = result.response['name'];
+            var mimeType = result.response['mimeType'];
+            var webViewLink = result.res['webViewLink'];
+            var webContentLink = result.res['webContentLink'];
+
+            req.body.photo = {
+                id,
+                name,
+                mimeType,
+                webViewLink,
+                webContentLink
+            };
+        }
+        subject.post = req.body.photo;
+        await subject.save();
+        
+        res.status(200).json({
+            success: true, 
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
 //PUT enroll to subject
 //URL subjects/:subjectid/enroll
 //Private students only
 exports.enrollStudent = async (req,res,next)=>{
     try {
-        var isEnrolled;
+        var isEnrolled = false;
         const subject = await Subject.findById(req.params.subjectid);
         const user = await User.findById(req.user.id);
 
@@ -224,6 +260,15 @@ exports.enrollStudent = async (req,res,next)=>{
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
         }
+
+        if(subject.enrolledStudents.length >= subject.maxStudents){
+            return next(new ErrorResponse(`Class is full`, 400));
+        }
+
+        if(Date.getDate() > subject.payDate){
+            return next(new ErrorResponse(`You have to pay`, 400));
+        }
+
         user.enrolledSubjects.forEach(element => {
             if(element.subject == req.params.subjectid){
                isEnrolled = true;
@@ -275,6 +320,88 @@ exports.unEnrollStudent = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+//PUT pay for class
+//URL /:subjectid/pay
+//Private
+exports.payClass = async(req,res,next) => {
+    try{
+        var isEnrolled = false;
+        var subject = await Subject.findById(req.params.subjectid);
+        var user = await User.findById(req.user._id);
+
+        req.body.subject = req.params.subjectid;
+        req.body.student = req.user._id;
+
+        if(!subject){
+            return next(new ErrorResponse(`Subject not found`, 404));
+        }
+        
+        user.enrolledSubjects.forEach(element => {
+            if(element.subject == req.params.subjectid){
+               isEnrolled = true;
+            }
+        });
+
+        if(subject.enrolledStudents.length >= subject.maxStudents){
+            return next(new ErrorResponse(`Class is full`, 400));
+        }
+
+
+        if(!isEnrolled){
+            req.body.subject = req.params.subjectid;
+            req.body.student = req.user.id;
+            await user.enrolledSubjects.push(req.body);
+            await user.save();
+
+            await User.findByIdAndUpdate({"_id": req.user.id}, 
+            {"$pull": {"cart": {"subject": req.params.subjectid}}});
+            
+            await subject.enrolledStudents.push(req.body);
+            await subject.save();
+
+            user.enrolledSubjects.forEach(async (element) => {
+                if(element.subject == req.params.subjectid){
+                    await element.payment.push(req.body);
+                    await user.save();
+                }
+            });
+            subject.enrolledStudents.forEach(async (element) => {
+                if(element.student == req.user._id){
+                    await element.payment.push(req.body);
+                    await subject.save();
+                }
+            });
+
+            res.status(200).json({
+                success: true, 
+            });
+
+        }else if(isEnrolled){
+            user.enrolledSubjects.forEach(async (element) => {
+                if(element.subject == req.params.subjectid){
+                    await element.payment.push(req.body);
+                    await user.save();
+                }
+            });
+            subject.enrolledStudents.forEach(async (element) => {
+                if(element.student == req.user.id){
+                    await element.payment.push(req.body);
+                    await subject.save();
+                }
+            });
+        
+            res.status(200).json({
+                success: true, 
+            });
+            
+        }
+
+    }catch(error){
         console.log(error);
         next(error);
     }

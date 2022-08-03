@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const QuizSchema = new mongoose.Schema({
-    quizName: {
+    title: {
         type: String,
         trim: true,
         required:true
@@ -23,19 +23,54 @@ const QuizSchema = new mongoose.Schema({
                 required: [true, 'Please add a question'],
                 trim: true,
             },
-            options: [
-                {
-                    opt: {
-                        type: String,
+            option_1: {
+                    optId: {
+                        type: Number,
                         required: true
                     },
-                    isCorrect: {
-                        type: Boolean,
+                    answer: {
+                        type: String,
                         required: true,
-                        default: false
                     }
-                }
-            ]
+            },
+            option_2: {
+                    optId: {
+                        type: Number,
+                        required: true
+                    },
+                    answer: {
+                        type: String,
+                        required: true,
+                    }
+            },
+            option_3: {
+                    optId: {
+                        type: Number,
+                        required: true
+                    },
+                    answer: {
+                        type: String,
+                        required: true,
+                    }
+            },
+            option_4: {
+                    optId: {
+                        type: Number,
+                        required: true
+                    },
+                    answer: {
+                        type: String,
+                        required: true,
+                    }
+            },
+            correctAnswer: {
+                type: Number,
+                required: true
+            },
+            mark:{
+                type: Number,
+                required: true
+            }
         }
     ],
     submissions: [
@@ -47,19 +82,25 @@ const QuizSchema = new mongoose.Schema({
             date: {
                 type: Date,
                 default: Date.now()
-            }
+            },
+            answers: [
+                {
+                    question: String,
+                    answer: Number
+                }
+            ]
         }
     ],
-    duration: Date,
+    description:{
+        type: String,
+        default: null
+    },
+    duration: Number,
     closingDate: Date,
     isClosed:{
         type: Boolean,
         default: false
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('Quiz', QuizSchema);

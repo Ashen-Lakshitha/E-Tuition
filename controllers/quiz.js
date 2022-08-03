@@ -3,25 +3,22 @@ const User = require('../models/User');
 const Subject = require('../models/Subject');
 const ErrorResponse = require('../utils/errorResponse');
 
-//GET get all quizzes for teacher
-//URL /quizzes/sub/:subjectid/
-//private
+//GET get all quizzes for subject
+//URL /subject/:subjectid/quiz
+//private teacher only
 exports.getQuizzes = async (req,res,next)=>{
     try {
         const subject = await Subject.findById(req.params.subjectid);
-        if(req.user.role == 'teacher'){
-            if(subject.teacher.toString() !== req.user.id){
-                return next(
-                    new ErrorResponse(
-                        `User is not authorized to view quiz`, 
-                        401
-                    )
-                );
-            }
+        
+        if(subject.teacher.toString() !== req.user.id){
+            return next(
+                new ErrorResponse(
+                    `User is not authorized to view quiz`, 
+                    401
+                )
+            );
         }
-
         const quizzes = await Quiz.find({subject:req.params.subjectid});
-
         res.status(200).json({
             success: true,
             count: quizzes.length, 
@@ -34,16 +31,29 @@ exports.getQuizzes = async (req,res,next)=>{
 };
 
 //GET get single quiz
-//URL quizzes/:quizid
+//URL quiz/:quizid
 //Private
 exports.getQuiz = async (req,res,next)=>{
     try {
         let quiz;
-
+        let isSubmitted = false;
         quiz = await Quiz.findById(req.params.quizid);
 
         if(!quiz){
             return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
+        }
+
+        if(req.user.role == 'student'){
+            quiz.submissions.forEach(element => {
+                if(element.student == req.user.id ){
+                    isSubmitted = true;
+                }
+            });
+
+            res.status(200).json({
+                success: true, 
+                data: {quiz, isSubmitted},
+            });
         }
 
         if(req.user.role == 'teacher'){
@@ -55,11 +65,57 @@ exports.getQuiz = async (req,res,next)=>{
                     )
                 );
             }
+            res.status(200).json({
+                success: true, 
+                data: quiz,
+            });
         }
+
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get student answers
+//URL quiz/:quizid/answers
+//Private
+exports.getAnswers = async (req,res,next)=>{
+    try {
+        let quiz;
+        quiz = await Quiz.findById(req.params.quizid);
+
+        if(!quiz){
+            return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
+        }
+
+        let answers;
+        let correctAnswers = [];
+        let totalMarks = 0;
+        quiz.submissions.forEach(element => {
+            if(element.student == req.user.id ){
+                answers = element.answers;
+                for (let i = 0; i < answers.length; i++) {
+                    for (let j = 0; j < quiz.questions.length; j++) {
+                        if(answers[i]['question'] == quiz.questions[j]['_id']){
+                            correctAnswers.push({
+                                "question": quiz.questions[j],
+                                "givenAns": answers[i]['answer'],
+                            })
+                            if(answers[i]['answer'] == quiz.questions[j]['correctAnswer']){
+                                totalMarks += quiz.questions[j]['mark'];
+                            }
+                        }
+                        
+                    }
+                    
+                }
+            }
+        });
 
         res.status(200).json({
             success: true, 
-            data: quiz,
+            data: {correctAnswers, totalMarks},
         });
 
     } catch (error) {
@@ -68,28 +124,38 @@ exports.getQuiz = async (req,res,next)=>{
 };
 
 //POST create quiz
-//URL /quizzes
+//URL /subjects/:subjectid/quiz
 //Private teacher only
 exports.createQuiz = async (req,res,next)=>{
     try {
-        
-        req.body.teacher = req.user.id;
-        
-        let quiz = await Quiz.create(req.body);
+
+        const subject = await Subject.findById(req.params.subjectid);
+        if(!subject){
+            return next(new ErrorResponse('Subject not found', 404));
+        }
+        if(subject.teacher.toString() !== req.user.id){
+            return next(
+                new ErrorResponse(
+                    `User is not authorized to create quiz`, 
+                    401
+                )
+            );
+        }
+        req.body.teacher = req.user._id;
+        req.body.subject = req.params.subjectid
+        await Quiz.create(req.body);
         
         res.status(200).json({
             success: true, 
-            data: quiz
         });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
 //PUT update quiz
-//URL quizzes/:quizid
+//URL quiz/:quizid
 //Private teacher only
 exports.updateQuiz = async (req,res,next)=>{
     try {
@@ -124,10 +190,10 @@ exports.updateQuiz = async (req,res,next)=>{
     }
 };
 
-//PUT update single question
-//URL quizzes/:quizid/:questionid
-//Private teacher only
-exports.updateQuestion = async (req,res,next)=>{
+//PUT submit quiz
+//URL quiz/:quizid/submit
+//Private student only
+exports.submitQuiz = async (req,res,next)=>{
     try {
         let quiz = await Quiz.findById(req.params.quizid);
 
@@ -135,30 +201,18 @@ exports.updateQuestion = async (req,res,next)=>{
             return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
         }
         
-        // make sure user is quiz owner
-        if(quiz.teacher.toString() !== req.user.id){
-            return next(
-                new ErrorResponse(
-                    `User ${req.user.id} is not authorized to update a quiz with id ${req.params.quizid}`, 
-                    401
-                )
-            );
-        }
-
-        let question = quiz.questions.id(req.params.questionid);
-        question.set(req.body);
+        req.body.student = req.user.id;
+        await quiz.submissions.push(req.body);
         await quiz.save();
-        
+                
         res.status(200).json({
             success: true, 
-            data: question
         });
 
     } catch (error) {
         next(error);
     }
 };
-
 
 //DELETE delete quiz
 //URL /quiz/:quizid
@@ -180,41 +234,6 @@ exports.deleteQuiz = async (req,res,next)=>{
                 )
             );
         }
-
-
-        await quiz.remove();
-
-        res.status(200).json({
-            success: true, 
-            data: {}
-        });
-        
-    } catch (error) {
-        next(error);
-    };
-};
-
-//DELETE delete single question
-//URL /quiz/:quizid/:qustionid
-//Private teacher only
-exports.deleteQuestion = async (req,res,next)=>{
-    try {
-        const quiz = await Quiz.findById(req.params.quizid);
-
-        if(!quiz){
-            return next(new ErrorResponse(`Quiz not found`, 404));
-        }
-
-        //make sure user is subject owner
-        if(quiz.teacher.toString() !== req.user.id){
-            return next(
-                new ErrorResponse(
-                    `User is not authorized to delete a quiz`, 
-                    401
-                )
-            );
-        }
-
 
         await quiz.remove();
 

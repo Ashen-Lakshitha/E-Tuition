@@ -6,7 +6,8 @@ const jwt = require('jsonwebtoken');
 const UserSchema = new mongoose.Schema({
     title: {
         type: String,
-        enum: ['Student', 'Mr.','Mrs.', 'Miss.', 'Ven.', 'Dr.', 'Prof.', 'Lecturer']
+        enum: ['Student', 'Mr.','Mrs.', 'Miss.', 'Ven.', 'Dr.', 'Prof.', 'Lecturer'],
+        required: [true, 'Please add a title']
     },
     name: {
         type: String,
@@ -21,11 +22,15 @@ const UserSchema = new mongoose.Schema({
     },
     gender:{
         type: String,
-        enum: ['Male', 'Female', 'None']
+        enum: ['Male', 'Female', 'None'],
+        required: [true, 'Please add a gender']
     },
     birthday: Date,
     photo: {
-        id : String,
+        id : {
+            type:String,
+            default:null
+        },
         name : String,
         mimeType : String,
         webViewLink : String,
@@ -63,15 +68,25 @@ const UserSchema = new mongoose.Schema({
                 type: mongoose.Schema.ObjectId,
                 ref: 'Subject'
             },
-            isPaid: {
-                type: Boolean,
-                default: false
-            },
+            payment: [
+                {
+                    date:{ 
+                        type: Date,
+                        default: Date.now()
+                    },
+                    isPaid:{
+                        type : Boolean,
+                        default: true
+                    },
+                    amount: Number,
+                    paymentType:String
+                }
+            ],
             isEnrolled: {
                 type: Boolean,
                 default: true
             },
-            createdAt:{
+            enrolledDate:{
                 type: Date,
                 default: Date.now()
             },
@@ -91,11 +106,7 @@ const UserSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    createdAt:{
-        type: Date,
-        default: Date.now()
-    },
-});
+},{timestamps: true});
 
 //hash the password when create  or update a document
 UserSchema.pre('save', async function(next){
@@ -119,7 +130,6 @@ UserSchema.methods.getSignedJwtToken = function(){
     });
 }
 
-
 //generate and hash password token
 UserSchema.methods.getResetPasswordCode = function(){
     //generate token
@@ -133,6 +143,5 @@ UserSchema.methods.getResetPasswordCode = function(){
 
     return resetCode;
 }
-
 
 module.exports = mongoose.model('User', UserSchema); 
