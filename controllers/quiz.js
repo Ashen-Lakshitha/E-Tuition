@@ -276,7 +276,11 @@ exports.submitQuiz = async (req,res,next)=>{
         let quiz = await Quiz.findById(req.params.quizid);
 
         if(!quiz){
-            return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
+            return next(new ErrorResponse(`Quiz not found`, 404));
+        }
+
+        if(quiz.isClosed){
+            return next(new ErrorResponse(`Quiz is closed`, 404));
         }
         
         req.body.student = req.user.id;
