@@ -3,7 +3,7 @@ const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
 //GET get all users count by role
-//URL /
+//URL admin/
 //Private admin only
 exports.getUsers = async (req,res,next)=>{
 
@@ -16,19 +16,18 @@ exports.getUsers = async (req,res,next)=>{
             .json({
                 success: true, 
                 data: [
-                {count: teachers.length},
-                {count: students.length},
-                {count: subjects.length}]
+                {tcount: teachers.length},
+                {stcount: students.length},
+                {scount: subjects.length}]
             });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
 //GET get all teachers
-//URL /teachers
+//URL admin/teachers
 //Private admin only
 exports.getTeachers = async (req,res,next)=>{
 
@@ -47,7 +46,7 @@ exports.getTeachers = async (req,res,next)=>{
 };
 
 //GET get all students
-//URL /students
+//URL admin/students
 //Private admin only
 exports.getStudents = async (req,res,next)=>{
 
@@ -66,7 +65,7 @@ exports.getStudents = async (req,res,next)=>{
 };
 
 //GET get all requests when sign up
-//URL /req
+//URL admin/req
 //Private admin only
 exports.getSignupReq = async (req, res, next) => {
     try {
@@ -82,8 +81,8 @@ exports.getSignupReq = async (req, res, next) => {
     }
 }
 
-//PUT update user
-//URL /:userid
+//PUT update user by admin
+//URL admin/:userid
 //Private admin only
 exports.updateUser = async (req,res,next)=>{
     try {
@@ -101,8 +100,8 @@ exports.updateUser = async (req,res,next)=>{
     }
 };
 
-//PUT update user
-//URL /:userid/verify
+//PUT verify teacher
+//URL admin/:userid/verify
 //Private admin only
 exports.verifyTeacher = async (req,res,next)=>{
     try {
@@ -123,7 +122,7 @@ exports.verifyTeacher = async (req,res,next)=>{
 
 //DELETE delete user
 //URL /user/:userid
-//Private
+//Private admin only
 exports.deleteUser = async (req,res,next)=>{
     try {
         await User.findByIdAndDelete(req.params.userid);
@@ -137,21 +136,3 @@ exports.deleteUser = async (req,res,next)=>{
         next(error);
     };
 };
-
-//DELETE delete subject
-//URL /subject/:subjectid
-//Private
-exports.deleteClass = async (req,res,next)=>{
-    try {
-        await Subject.findByIdAndDelete(req.params.subjectid);
-
-        res.status(200).json({
-            success: true, 
-            data: {} 
-        });
-        
-    } catch (error) {
-        next(error);
-    };
-};
-

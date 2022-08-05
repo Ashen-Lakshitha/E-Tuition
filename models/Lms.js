@@ -19,6 +19,12 @@ const lmsSchema = new mongoose.Schema({
                 webViewLink : String,
                 webContentLink : String
             },
+            name: String,
+            quiz: {
+                type: mongoose.Schema.ObjectId,
+                ref: 'Quiz',
+            },
+            text: String,
         }
     ],
     description: {

@@ -214,7 +214,7 @@ exports.createStudent = async (req,res,next)=>{
         req.body.isPending = true;
         // req.body.expireAt.index.expires = '5m';
         var user = await User.create(req.body);
-        const requestUrl = `${req.protocol}://${req.get('host')}/users/${user._id}`;
+        const requestUrl = `${req.protocol}://${req.get('host')}/users/verify/${user._id}`;
         const message = `Hi ${user.name},\n\nClick the following link to verify your account\n\n${requestUrl}`;
 
         await sendMail({
@@ -357,7 +357,7 @@ exports.addToCart = async (req,res,next)=>{
 };
 
 //PUT update user
-//URL /
+//URL /:userid
 //Private
 exports.verifyUser = async (req,res,next)=>{
     try {
@@ -372,6 +372,7 @@ exports.verifyUser = async (req,res,next)=>{
         res.status(200).sendFile(path.join(process.cwd()+'/utils/index.html'));
         
     } catch (error) {
+        console.log(error)
         res.status(404).sendFile(path.join(process.cwd()+'/utils/error.html'));
     }
 };

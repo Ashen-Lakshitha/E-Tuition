@@ -9,7 +9,6 @@ const sendMail = require('../utils/sendEmail');
 exports.loginUser = async (req,res,next)=>{
     try {
         const {email, password} = req.body;
-        console.log(email);
         //validate email and password
         if(!email){
             return next(new ErrorResponse('Please enter an email', 401));
@@ -83,7 +82,7 @@ exports.updatePassword = async (req,res,next)=>{
     const user = await User.findById(req.user.id).select('+password');
 
     // Check current password
-    if (!(await user.matchPassword(req.body.currentPassword))) {
+    if (!(await user.matchPwd(req.body.currentPassword))) {
         return next(new ErrorResponse('Password is incorrect', 401));
     }
 

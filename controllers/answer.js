@@ -1,31 +1,14 @@
-const Answers = require('../models/Answer');
+const Answer = require('../models/Answer');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
-//GET get all subjects(student home page)
-//URL /subjects
-//GET get all subjects for a teacher
-//URL /users/:userid/subjects
+//GET get all answers
+//URL /answers
 //Public
 exports.viewQuizzes = async (req,res,next)=>{
     try {
-        // // let queryStr = JSON.stringify(req.query);
-        // // queryStr = queryStr.replace(/\b(=)\b/g, match => `$in`);
-        // // console.log(queryStr);
-        // let q = req.query.subject;
-        // let query;
-        // if(req.params.userid){
-        //     query = Subject.find({ teacher : req.params.userid}).populate({
-        //         path: 'teacher',
-        //         select: 'name photo',
-                
-        //     });
-        // }
-        // else{
-            let query = Answers.find();
-        // }
 
-        const subjects = await query;
+        const answers = await Answer.find();
 
         res.status(200).json({
             success: true,

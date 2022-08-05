@@ -1,7 +1,13 @@
 const Subject = require('../models/Subject');
+const Lms = require('../models/Lms');
 const User = require('../models/User');
+const Submission = require('../models/Submission');
+const Quiz = require('../models/Quiz');
+const Review = require('../models/Review');
 const ErrorResponse = require('../utils/errorResponse');
+const Answer = require('../models/Answer');
 const {uploadFiles, deleteFile} = require('../utils/service');
+
 
 //GET get all subjects(student home page)
 //URL /subjects
@@ -127,7 +133,6 @@ exports.getSubjectPublic = async (req,res,next)=>{
 exports.getMySubjects = async (req, res, next) => {
     try {
         const subjects = await Subject.find({teacher: req.user._id}, '-enrolledStudents');
-        console.log(subjects);
 
         res.status(200).json({
            success: true,
@@ -145,36 +150,59 @@ exports.getMySubjects = async (req, res, next) => {
 exports.getPayments = async (req,res,next)=>{
     try {
         let students = [];
+        let pcount = 0;
         let month = req.query.date.split("-")[1];
         let year = req.query.date.split("-")[0];
 
         const subject = await Subject.findById(req.params.subjectid).populate({
-            path: 'teacher',
-            select: "title name email phone school qualifications photo"
-            }).populate({
-                path: 'enrolledStudents',
-                populate: {
-                    path:  'student',
-                    select: "name email "}
-            });
-        subject['enrolledStudents'].forEach(element => {
-            element.payment.forEach((payment) => {
-                if(month.startsWith(payment.date.toString().split(' ')[1]) && payment.date.toString().split(' ')[3] == year.toString()){
-                    students.push({_id:element['student']['_id'], name:element['student']['name'], email: element['student']['email'], payment});
-                }
-            });
+            path: 'enrolledStudents',
+            populate: {
+                path:  'student',
+                select: "name email "}
         });
+        var date = new Date();
+        var currentMonth = date.toLocaleString('default', { month: 'long' });
+        var currentYear = date.getFullYear();
 
-        res
-            .status(200)
-            .json({
-                success: true, 
-                data: {
-                    students, 
-                    total: subject['enrolledStudents'].length, 
-                    pcount: students.length}
+        if(month == currentMonth && year == currentYear){
+            subject['enrolledStudents'].forEach(student => {
+                const payed =student.payment.filter(pay => month.startsWith(pay.date.toString().split(' ')[1]) && pay.date.toString().split(' ')[3] == year.toString());
+                pcount += payed.length;
+                payed.length == 0 ? students.push({id:student.student['_id'], name:student.student['name'],email:student.student['email'],payment:{}}) : students.push({id:student.student['_id'], name:student.student['name'],email:student.student['email'],payment:payed[0]});
+            
             });
+
+            res
+                .status(200)
+                .json({
+                    success: true, 
+                    data: {
+                        students: students, 
+                        total: subject['enrolledStudents'].length, 
+                        pcount}
+                });
+        }else{
+            subject['enrolledStudents'].forEach(element => {
+                element.payment.forEach((payment) => {
+                    if(month.startsWith(payment.date.toString().split(' ')[1]) && payment.date.toString().split(' ')[3] == year.toString()){
+                        students.push({_id:element['student']['_id'], name:element['student']['name'], email: element['student']['email'], payment});
+                    }
+                });
+            });
+    
+            res
+                .status(200)
+                .json({
+                    success: true, 
+                    data: {
+                        students, 
+                        total: students.length, 
+                        pcount: students.length}
+                });
+        }
+        
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };
@@ -202,7 +230,7 @@ exports.createSubject = async (req,res,next)=>{
             };
             req.body.teacher = req.user.id;
         }
-
+        req.body.period = {'day': req.body.day, 'time': req.body.time};
         await Subject.create(req.body);
 
         res.status(200).json({
@@ -210,7 +238,6 @@ exports.createSubject = async (req,res,next)=>{
         });
 
     } catch (error) {
-        console.log("error");
         next(error);
     }
 };
@@ -226,7 +253,6 @@ exports.updateSubject = async (req,res,next)=>{
             return next(new ErrorResponse(`Subject not found`, 404));
         }
         
-        // make sure user is subject owner
         if(subject.teacher.toString() !== req.user.id){
             return next(
                 new ErrorResponse(
@@ -234,6 +260,7 @@ exports.updateSubject = async (req,res,next)=>{
                     );
                 }
                 
+        req.body.period = {'day': req.body.day, 'time': req.body.time};
         subject = await Subject.findByIdAndUpdate(req.params.subjectid, req.body, {
             new: true,
             runValidators: true
@@ -333,7 +360,6 @@ exports.enrollStudent = async (req,res,next)=>{
         }
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -387,7 +413,6 @@ exports.enrollStudentByTeacher = async (req,res,next)=>{
         }
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -441,7 +466,6 @@ exports.enrollStudentByTeacher = async (req,res,next)=>{
         }
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -468,7 +492,6 @@ exports.unEnrollStudent = async (req,res,next)=>{
         });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -550,7 +573,6 @@ exports.payClass = async(req,res,next) => {
         }
 
     }catch(error){
-        console.log(error);
         next(error);
     }
 };
@@ -566,7 +588,6 @@ exports.deleteSubject = async (req,res,next)=>{
             return next(new ErrorResponse(`Subject not found`, 404));
         }
 
-        //make sure user is subject owner
         if(subject.teacher.toString() !== req.user.id){
             return next(
                 new ErrorResponse(
@@ -579,6 +600,44 @@ exports.deleteSubject = async (req,res,next)=>{
         if(subject.enrolledStudents.length > 0){
             return next(new ErrorResponse(`Cannot delete class with enrolled students`, 400));
         }
+
+        var lms = await Lms.find({subject: req.params.subjectid});
+        if(lms){
+            lms.forEach(async (element) => {
+                element.content.forEach(async (doc) => {
+                    if(doc['uploadType'] == 'assignments'){
+                        await Submission.findOneAndDelete({assignmentId: doc['_id']});
+                        await deleteFile(doc['document']['id']);
+                    }
+                    if(doc['uploadType'] == 'quiz'){
+                        await Quiz.findOneAndDelete({subject: doc['_id']});
+                    }
+                });
+            });
+
+            await lms.remove();
+        }
+
+        await Review.findOneAndDelete({subject: req.params.subjectid});
+
+        var users = await User.find();
+        users.forEach(async (user) => {
+            user.enrolledSubjects.forEach(async (subj) => {
+                if(subj.subject == req.params.subjectid){
+                    user.enrolledSubjects.pull(subj);
+                    await user.save();
+                }
+            });
+            user.cart.forEach(async (subj) => {
+                if(subj.subject == req.params.subjectid){
+                    user.cart.pull(subj);
+                    await user.save();
+                }
+            });
+        });
+
+        await Answer.findOneAndDelete({subject: req.params.subjectid});
+        await deleteFile(subject.post.id);
 
         await subject.remove();
 

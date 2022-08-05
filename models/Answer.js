@@ -4,22 +4,22 @@ const AnswerSchema = new mongoose.Schema({
     student:{
         type: mongoose.Schema.ObjectId,
         ref: 'User',
-        // required: true
+        required: true
     },
     teacher:{
         type: mongoose.Schema.ObjectId,
         ref: 'User',
-        // required: true
+        required: true
     },
     subject:{
         type: mongoose.Schema.ObjectId,
         ref: 'Subject',
-        // required: true
+        required: true
     },
     quiz:{
         type: mongoose.Schema.ObjectId,
         ref: 'Quiz',
-        // required: true
+        required: true
     },
     answers: [
         {
@@ -29,7 +29,7 @@ const AnswerSchema = new mongoose.Schema({
             },
             answer: {
                 type: String,
-                // required: true
+                required: true
             },
             correctAns:Number
 
