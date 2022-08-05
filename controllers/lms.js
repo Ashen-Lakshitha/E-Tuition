@@ -220,6 +220,10 @@ exports.deleteClassMaterials = async (req,res,next)=>{
             }
             if(doc['uploadType'] == 'quiz'){
                 await Quiz.findOneAndDelete({subject: doc['_id']});
+                await lms.content.pull(doc);
+                const quiz = await Quiz.findById(doc['quiz']);
+                quiz.submissios = [];
+                await quiz.save();
             }
         });
 
