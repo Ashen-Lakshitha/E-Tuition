@@ -15,10 +15,17 @@ exports.getUsers = async (req,res,next)=>{
             .status(200)
             .json({
                 success: true, 
+                success: true, 
                 data: [
-                {tcount: teachers.length},
-                {stcount: students.length},
-                {scount: subjects.length}]
+                {count: teachers.length,
+                name: "Teachers",
+                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOEuaL14xHFILfpNxSISzrJE3bnBckLdpHvA&usqp=CAU",},
+                {count: students.length,
+                name:  "Students",
+                image: "https://img.freepik.com/free-vector/noisy-big-megaphone_74855-7630.jpg?w=2000",},
+                {count: subjects.length,
+                name: "Classes",
+                image: "https://img.freepik.com/free-vector/focused-tiny-people-reading-books_74855-5836.jpg?w=2000",}]
             });
 
     } catch (error) {
