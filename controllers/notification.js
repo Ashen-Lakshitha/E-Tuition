@@ -1,108 +1,11 @@
-// const notification = require("../models/Notification");
-// const Subject = require('../models/Subject');
-
-// //create notification
-// exports.createNotification =  async(req,res,next)=>{
-//     try{
-//         //if(req.user.role == 'teacher'){
-//             const notificationList = await notification.findOne({subjectid: req.params.subjectid});
-//             if(notificationList == null){
-//                 try {
-//                     // const subject = await Subject.findById(req.params.subjectid);
-//                     req.body.teacherId = req.user.id;
-//                     req.body.subjectId = req.params.subjectid;
-                   
-//                     await notification.create(req.body);
-//                     res.status(200).json({
-//                         success: true
-//                     });
-//                 } catch (error) {
-//                     next(error);
-//                 }
-//             }else{a
-//                 try {
-//                     await notificationList.notifications.push(req.body.notification);
-//                     await notificationList.save();
-//                     res.status(200).json({
-//                         success: true
-//                     });
-//                 } catch (error) {
-//                     next(error);
-//                 }
-//             }
-//         //} 
-//     }catch (error) {
-//         next(error);
-//     }
-// }
-
-// //get notification
-// exports.viewNotification = async (req, res, next) => {
-//     try {
-//      if(req.user.role == 'teacher'){
-//        const notifications = await notification.find({teacherid: req.user._id});
-//         // const notifications = await notification.find({teacherid: '5d7a514b5d2c12c7449be042'});
-
-//         res.status(200).json({
-//            success: true,
-//            data: notifications
-//         });
-//     }else{
-        
-//     }  
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
 const Notification = require("../models/notification");
+const ErrorResponse = require('../utils/errorResponse');
 
-//create notification
-exports.createNotification =  async(req,res,next)=>{
-    try{
-        //if(req.user.role == 'teacher'){
-            const notificationList = await Notification.findOne({subjectid: req.params.subjectid});
-            console.log(notificationList);
-            if(notificationList == null){
-                try {
-                    req.body.teacherId = req.user.id;
-                    req.body.subjectId = req.params.subjectid;
-                    console.log("notification");
-                    // let notification = {"title" : req.body.notification.title,
-                    //     "description": req.body.notification.description};
-                        
-                    const noti = await Notification.create(req.body);
-                    await noti.notifications.push(req.body);
-                    await noti.save();
-                   
-                    
-                    res.status(200).json({
-                        success: true
-                    });
-                } catch (error) {
-                    console.log(error);
-                    next(error);
-                }
-            }else{
-                try {
-                    await notificationList.notifications.push(req.body);
-                    await notificationList.save();
-                    res.status(200).json({
-                        success: true
-                    });
-                } catch (error) {
-                    next(error);
-                }
-            }
-        //} 
-    }catch (error) {
-        console.log(error);
-                next(error);
-    }
-}
-
-//get notification  subject/:subid/noti/
-//no/noid
+//GET get all notification for a teacher
+//URL /notification
+//GET get all notification for a subject
+//URL subject/:subjectid/notification
+//Private
 exports.viewNotifications = async (req, res, next) => {
     try {
      if(req.params.subjectid){
@@ -146,15 +49,20 @@ exports.viewNotifications = async (req, res, next) => {
         
     }  
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
 
+//GET get single notification
+//URL /notification/notificationid
+//Private
 exports.viewNotification = async (req, res, next) => {
     try {
      
-       const notification = await Notification.findById(req.params.notificationid);
+        const notification = await Notification.findById(req.params.notificationid);
+        if(!notification){
+            return next(new ErrorResponse(`Notification not found`, 404));
+        }
 
         res.status(200).json({
            success: true,
@@ -164,3 +72,65 @@ exports.viewNotification = async (req, res, next) => {
         next(error);
     }
 };
+
+//POST create notification
+//URL /notification
+//Private
+exports.createNotification =  async(req,res,next)=>{
+    try{
+        const notificationList = await Notification.findOne({subjectid: req.params.subjectid});
+        if(notificationList == null){
+            try {
+                req.body.teacherId = req.user.id;
+                req.body.subjectId = req.params.subjectid;
+             
+                const noti = await Notification.create(req.body);
+                await noti.notifications.push(req.body);
+                await noti.save();
+                
+                res.status(200).json({
+                    success: true
+                });
+            } catch (error) {
+                next(error);
+            }
+        }else{
+            try {
+                await notificationList.notifications.push(req.body);
+                await notificationList.save();
+                res.status(200).json({
+                    success: true
+                });
+            } catch (error) {
+                next(error);
+            }
+        }
+    }catch (error) {
+        next(error);
+    }
+}
+
+//POST delete notification
+//URL /notification/:notificationid
+//Private
+exports.deleteNotification =  async(req,res,next)=>{
+    try{
+        const notificationList = await Notification.findOne({teacherId: req.user.id});
+        if(!notificationList){
+            return next(new ErrorResponse(`Notification not found`, 404));
+        }else{
+            try {
+                await Notification.findOneAndUpdate({"teacherId": req.user.id}, 
+                {"$pull": {"notifications": {"_id": req.params.notificationid}}});
+                
+                res.status(200).json({
+                    success: true
+                });
+            } catch (error) {
+                next(error);
+            }
+        }
+    }catch (error) {
+        next(error);
+    }
+}

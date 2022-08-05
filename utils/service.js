@@ -33,6 +33,7 @@ exports.uploadFiles = async (fileName) =>{
         return {response: response.data, res: res};
         
     } catch (error) {
+        console.log(error);
         throw error;
     }
 }

@@ -1,4 +1,4 @@
-const Assignment = require('../models/Assignment');
+const Submission = require('../models/Submission');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 const {uploadFiles, deleteFile} = require('../utils/service');
@@ -8,7 +8,7 @@ const {uploadFiles, deleteFile} = require('../utils/service');
 //private
 exports.getSubmissions = async (req,res,next)=>{
     try {
-        const assignment = await Assignment.findOne({assignmentid:req.params.assignmentid}).populate({
+        const assignment = await Submission.findOne({assignmentid:req.params.assignmentid}).populate({
             path:'submissions',
             populate:({
                 path:'student',
@@ -34,7 +34,7 @@ exports.getMySubmission = async (req,res,next)=>{
     try {
 
         var isSubmitted = false;
-        const assignment = await Assignment.findOne({assignmentId : req.params.assignmentid})
+        const assignment = await Submission.findOne({assignmentId : req.params.assignmentid})
 
         if(!assignment){
             res.status(200).json({
@@ -93,11 +93,11 @@ exports.createSubmission = async (req,res,next)=>{
             
         }
         //check data row for given ass id
-        const ass = await Assignment.find({assignmentId : req.params.assignmentid})
+        const ass = await Submission.find({assignmentId : req.params.assignmentid})
         
         if(ass!= null){
             req.body.assignmentId = req.params.assignmentid;
-            const ass = await Assignment.create(req.body);
+            const ass = await Submission.create(req.body);
             await ass.submissions.push({student:req.user.id, document})
             await ass.save();
         }else{
@@ -120,21 +120,11 @@ exports.createSubmission = async (req,res,next)=>{
 //Private teacher only
 exports.updateSubmission = async (req,res,next)=>{
     try {
-        let assignment = await Assignment.findById(req.params.assignmentid);
+        let assignment = await Submission.findById(req.params.assignmentid);
 
         if(!assignment){
             return next(new ErrorResponse(`Assignment not found id with ${req.params.assignmentid}`, 404));
         }
-        
-        // make sure user is assignment owner
-        // if(assignment.student.toString() !== req.user.id){
-        //     return next(
-        //         new ErrorResponse(
-        //             `User ${req.user.id} is not authorized to update a assignment with id ${req.params.assignmentid}`, 
-        //             401
-        //         )
-        //     );
-        // }
                 
         assignment = await Assignment.findByIdAndUpdate(req.params.assignmentid, req.body, {
             new: true,
@@ -156,7 +146,7 @@ exports.updateSubmission = async (req,res,next)=>{
 //Private teacher only
 exports.deleteSubmission = async (req,res,next)=>{
     try {
-        const assignment = await Assignment.findOne({assinmentId:req.params.assignmentid});
+        const assignment = await Submission.findOne({assinmentId:req.params.assignmentid});
         if(!assignment){
             return next(new ErrorResponse(`assignment not found`, 404));
         }

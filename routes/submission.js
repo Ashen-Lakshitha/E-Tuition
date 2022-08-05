@@ -6,14 +6,9 @@ const {
     createSubmission,
     updateSubmission,
     deleteSubmission,
-} = require('../controllers/assignment');
+} = require('../controllers/submission');
 
 const router = express.Router({mergeParams:true});
-//include other routes
-// const ansRoute = require('./answer');
-
-//re-route
-// router.use('/answers', ansRoute);
 
 const { protect, authorize } = require('../middleware/auth');
 

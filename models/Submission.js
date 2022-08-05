@@ -1,19 +1,13 @@
 const mongoose = require('mongoose');
 
-const AssignmentSchema = new mongoose.Schema({
+const SubmissionSchema = new mongoose.Schema({
     assignmentId: {
         type: String,
         trim: true,
         required:true
     },
-    // subject:{
-    //     type: mongoose.Schema.ObjectId,
-    //     ref: 'Suject',
-    //     required: true
-    // },
     submissions: [
         {
-            //_id
             student: {
                 type: mongoose.Schema.ObjectId,
                 ref: 'User'
@@ -31,16 +25,6 @@ const AssignmentSchema = new mongoose.Schema({
             }
         }
     ],
-    // duration: Date,
-    // closingDate: Date,
-    // isClosed:{
-    //     type: Boolean,
-    //     default: false
-    // },
-    // createdAt: {
-    //     type: Date,
-    //     default: Date.now
-    // },
 });
 
-module.exports = mongoose.model('Assignment', AssignmentSchema);
+module.exports = mongoose.model('Submission', SubmissionSchema);

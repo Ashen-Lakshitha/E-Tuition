@@ -2,10 +2,12 @@ const express = require('express');
 const {
     getQuizzes, 
     getQuiz,
+    getSubmissions,
     createQuiz,
     updateQuiz,
     deleteQuiz,
     submitQuiz,
+    getMyAnswers,
     getAnswers
 } = require('../controllers/quiz');
 
@@ -33,10 +35,15 @@ router
 
 router
     .route('/:quizid/submit')
+    .get(protect, authorize('teacher'), getSubmissions)
     .put(protect, authorize('student'), submitQuiz);
 
 router
     .route('/:quizid/answers')
+    .get(protect, getMyAnswers);
+
+router
+    .route('/:quizid/:stdid/answers')
     .get(protect, getAnswers);
 
 module.exports = router;

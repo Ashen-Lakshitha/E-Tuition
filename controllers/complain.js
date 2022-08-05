@@ -6,12 +6,34 @@ const ErrorResponse = require('../utils/errorResponse');
 //private admin only
 exports.getComplains = async (req,res,next)=>{
     try {
-        const complains = await Complain.find();
+        const complains = await Complain.find().populate({
+            path:'sender',
+            select: 'name email'
+        });
         res
             .status(200)
             .json({
                 success: true, 
-                count: complains.length,
+                data: complains
+            });
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get my complains
+//URL /my
+//private student only
+exports.getMyComplains = async (req,res,next)=>{
+    try {
+        const complains = await Complain.find({sender: req.user.id}).populate({
+            path:'sender',
+            select: 'name email'
+        });
+        res
+            .status(200)
+            .json({
+                success: true, 
                 data: complains
             });
     } catch (error) {
@@ -47,6 +69,7 @@ exports.getComplain = async (req,res,next)=>{
 //private student and teacher
 exports.createComplain = async (req,res,next)=>{
     try {
+        req.body.sender = req.user.id
         await Complain.create(req.body);
         res.status(200).json({
             success: true, 

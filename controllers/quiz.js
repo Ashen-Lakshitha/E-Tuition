@@ -80,6 +80,54 @@ exports.getQuiz = async (req,res,next)=>{
 //GET get student answers
 //URL quiz/:quizid/answers
 //Private
+exports.getMyAnswers = async (req,res,next)=>{
+    try {
+        let quiz;
+        quiz = await Quiz.findById(req.params.quizid);
+
+        if(!quiz){
+            return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
+        }
+
+        let answers;
+        let correctAnswers = [];
+        let totalMarks = 0;
+        quiz.submissions.forEach(element => {
+            
+            if(element.student == req.user.id ){
+                answers = element.answers;
+                for (let i = 0; i < answers.length; i++) {
+                    for (let j = 0; j < quiz.questions.length; j++) {
+                        console.log(answers[i],quiz.questions[j]);
+                        if(answers[i]['question'] == quiz.questions[j]['_id']){
+                            correctAnswers.push({
+                                "question": quiz.questions[j],
+                                "givenAns": answers[i]['answer'],
+                            })
+                            if(answers[i]['answer'] == quiz.questions[j]['correctAnswer']){
+                                totalMarks += quiz.questions[j]['mark'];
+                            }
+                        }
+                        
+                    }
+                    
+                }
+            }
+        });
+
+        res.status(200).json({
+            success: true, 
+            data: {correctAnswers, totalMarks},
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get answers for a student
+//URL quiz/:quizid/:stdid/answers
+//Private
 exports.getAnswers = async (req,res,next)=>{
     try {
         let quiz;
@@ -93,7 +141,7 @@ exports.getAnswers = async (req,res,next)=>{
         let correctAnswers = [];
         let totalMarks = 0;
         quiz.submissions.forEach(element => {
-            if(element.student == req.user.id ){
+            if(element.student == req.params.stdid ){
                 answers = element.answers;
                 for (let i = 0; i < answers.length; i++) {
                     for (let j = 0; j < quiz.questions.length; j++) {
@@ -118,6 +166,37 @@ exports.getAnswers = async (req,res,next)=>{
             data: {correctAnswers, totalMarks},
         });
 
+    } catch (error) {
+        console.log(error)
+        next(error);
+    }
+};
+
+//GET get submissions for single quiz
+//URL quiz/:quizid/submit
+//Private
+exports.getSubmissions = async (req,res,next)=>{
+    try {
+        var quiz = await Quiz.findById(req.params.quizid).populate({
+            path: 'submissions',
+            populate:({
+                path: 'student',
+                select: 'name email'
+            })
+        });
+
+        if(!quiz){
+            return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
+        }
+
+        res.status(200).json({
+            success: true, 
+            data: {
+                submissions: quiz.submissions,
+                count: quiz.submissions.length
+            },
+        });
+        
     } catch (error) {
         next(error);
     }
@@ -162,21 +241,20 @@ exports.updateQuiz = async (req,res,next)=>{
         let quiz = await Quiz.findById(req.params.quizid);
 
         if(!quiz){
-            return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
+            return next(new ErrorResponse(`Quiz not found`, 404));
         }
         
-        // make sure user is quiz owner
         if(quiz.teacher.toString() !== req.user.id){
             return next(
-                new ErrorResponse(
-                    `User ${req.user.id} is not authorized to update a quiz with id ${req.params.quizid}`, 
-                    401
-                    )
+                new ErrorResponse(`User is not authorized to update quiz`, 401)
                     );
-                }
-                
+        }
+        
+        if(quiz.submissions != []){
+            return next(new ErrorResponse(`Students have already submitted answers`, 404));
+        }
+
         quiz = await Quiz.findByIdAndUpdate(req.params.quizid, req.body, {
-            new: true,
             runValidators: true
         });
                 

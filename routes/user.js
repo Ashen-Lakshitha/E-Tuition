@@ -34,7 +34,8 @@ router.get("/students", protect, authorize("admin", "teacher"), getStudents);
 router.get('/myclasses',protect, authorize("student"), getMyEnrolledClasses );
 router.get('/cart',protect, authorize("student"), getCart );
 router.get('/payments',protect, getPayments );
-router.get('/:userid',protect, authorize("admin", "teacher"), getUser );
+router.get('/:userid',protect, getUser );
+router.get('/verify/:userid', verifyUser );
 
 router.post('/regteacher',upload.single('verifications'), createTeacher);
 router.post('/regstudent', createStudent);
@@ -42,7 +43,6 @@ router.post('/regstudent', createStudent);
 router.put('/',protect, updateUser );
 router.put('/pic', protect, upload.single('image'), updateProfilePicture);
 router.put('/cart/:subjectid', protect, authorize("student"), addToCart );
-router.put('/:userid', verifyUser );
 
 router.delete('/', protect, deleteUser );
 router.delete('/cart/:subjectid', protect, authorize("student"), removeFromCart );

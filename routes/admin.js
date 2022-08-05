@@ -10,10 +10,13 @@ const {
     deleteUser,
 } = require('../controllers/admin');
 
+const subjectRouter = require('./subject');
+
 const router = express.Router();
 
-//Security
 const { protect, authorize } = require('../middleware/auth');
+
+router.use('/subjects', protect, authorize('admin'), subjectRouter);
 
 router.get("/", protect, authorize('admin'), getUsers );
 router.get("/teachers", protect, authorize('admin'), getTeachers );
@@ -23,6 +26,6 @@ router.get('/req',protect, authorize("admin"), getSignupReq );
 router.put('/:userid/verify', protect, authorize('admin'), verifyTeacher)
 router.put('/:userid',protect, authorize('admin'), updateUser );
 
-router.delete('/:userid', protect, authorize('admin'), deleteUser );
+router.delete('/user/:userid', protect, authorize('admin'), deleteUser );
 
 module.exports = router;

@@ -15,11 +15,10 @@ exports.protect = async (req, res, next)=>{
         if(!token){
             return next(new ErrorResponse('Not authorized to access this route', 401));
         }
-
         try {
             //verify token
             const decode = jwt.verify(token, process.env.JWT_SECRET);
-        
+            
             req.user = await User.findById(decode.id);
             next();
         } catch (error) {
@@ -43,7 +42,7 @@ exports.authorize = (...roles) =>{
 //Check verified users
 exports.verify = (req,res,next) =>{
     if(req.user.isPending){
-       return next(new ErrorResponse(`User is not verified`, 404));
+       return next(new ErrorResponse(`User is not verified`, 403));
     }
      next();  
 }

@@ -11,33 +11,28 @@ const {
     updateSubject,
     updateClassPoster,
     enrollStudent,
-    enrollStudentByTeacher,
     unEnrollStudent,
+    enrollStudentByTeacher,
     payClass,
     deleteSubject,
 } = require('../controllers/subject');
 
 const reviewRouter = require('./reviews');
 const quizRouter = require('./quiz');
-const chatRouter = require('./index');
-// const lmsRouter = require('./lms');
+const chatRouter = require('./message');
+const lmsRouter = require('./lms');
 const notiRouter = require('./notification');
 
 const router = express.Router({mergeParams: true});
 
 const { protect, authorize, verify } = require('../middleware/auth');
 
-//include other routes
-const lmsRoute = require('./lms');
-
 //re-route
-router.use('/:subjectid/lms', lmsRoute);
-
+router.use('/:subjectid/lms', lmsRouter);
 router.use('/:subjectid/reviews',reviewRouter);
 router.use('/:subjectid/quiz',quizRouter);
 router.use('/:subjectid/msges', chatRouter);
-//router.use('/:subjectid/lms', lmsRouter);
-router.use('/:subjectid/notifications', notiRouter);
+router.use('/:subjectid/notification', notiRouter);
 
 router
     .route('/')
@@ -61,6 +56,10 @@ router
 router
     .route('/:subjectid/enroll')
     .put(protect, authorize('student'), verify, enrollStudent);
+
+router
+    .route('/:subjectid/unenroll')
+    .put(protect, authorize('student'), unEnrollStudent);
 
 router
     .route('/:subjectid/pay')

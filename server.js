@@ -1,10 +1,9 @@
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const mongoSanitize = require('express-mongo-sanitize');
-
 
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/error');
@@ -19,13 +18,14 @@ connectDB();
 const subject = require('./routes/subject');
 const auth = require('./routes/auth');
 const users = require('./routes/user');
-const index=require('./routes/index');
 const quiz = require('./routes/quiz');
-const assignment = require('./routes/assignment');
+const submissions = require('./routes/submission');
 const lms = require('./routes/lms');
 const reviews = require('./routes/reviews');
+const complain = require('./routes/complain');
+const message = require('./routes/message');
 const admin = require('./routes/admin');
-const notification=require('./routes/notification');
+const notification = require('./routes/notification');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -49,14 +49,15 @@ app.use(mongoSanitize());
 app.use('/subjects', subject);
 app.use('/auth', auth);
 app.use('/users', users);
-app.use('/msges', index);
-app.use('/quizzes', quiz);
-app.use('/reviews', reviews);
-app.use('/admin', admin);
+app.use('/quiz', quiz);
+app.use('/submissions', submissions);
 app.use('/lms', lms);
-app.use('/assignment', assignment)
+app.use('/reviews', reviews);
+app.use('/complain', complain);
+app.use('/msges', message);
+app.use('/admin', admin);
+app.use('/notification', notification);
 
-app.use('/notifications',notification),
 //errorHhandler middleware
 app.use(errorHandler);
 

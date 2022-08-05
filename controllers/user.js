@@ -20,7 +20,7 @@ exports.getTeachers = async (req,res,next)=>{
                     data: teachers
                 });
         }else{
-            const teachers = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher', isPending: false}).select('name');
+            const teachers = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'teacher', isPending: false});
             res
                 .status(200)
                 .json({
@@ -49,7 +49,7 @@ exports.getStudents = async (req,res,next)=>{
                     data: students
                 });
         }else{
-            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false}).select('name');
+            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false});
             res
                 .status(200)
                 .json({
@@ -68,34 +68,31 @@ exports.getStudents = async (req,res,next)=>{
 //Private admin teacher only
 exports.getUser = async (req,res,next)=>{
     try {
-        if(req.user.role == 'admin'){
-            const user = await User.findById(req.params.userid);
-
-            if(user.role == 'teacher'){
-                const subjects = await Subject.find({teacher: req.params.id});
-                res.status(200).json({
-                    success: true, 
-                    data: [user, subjects]
-                });
-            }else{
-                res.status(200).json({
-                    success: true, 
-                    data: user
-                });
-            }
-            
-        }else{
-            const user = await User.findById(req.params.userid).where({isPending: false});
-        
+            const user = await User.findById(req.params.userid).populate({
+                path:'enrolledSubjects',
+                populate:({
+                    path:'subject',
+                    select:'subject post'
+                })
+            });
             if(!user){
                 return next(new ErrorResponse(`User not found`, 404));
             }
+
+            if(user.role == 'teacher'){
+                const subjects = await Subject.find({teacher: req.params.userid});
+                res.status(200).json({
+                    success: true, 
+                    data: {user, subjects}
+                });
+
+            }else{
+                res.status(200).json({
+                    success: true, 
+                    data: {user}
+                });
+            }
             
-            res.status(200).json({
-                success: true, 
-                data: user
-            });
-        }   
     } catch (error) {
         next(error);
     }
@@ -110,7 +107,11 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
             path: 'enrolledSubjects',
             populate:({
                 path:'subject',
-                select: 'stream subject subtopic type fee post', 
+                select: 'stream teacher subject subtopic type fee post averageRating',
+                populate:({
+                    path: 'teacher',
+                    select: 'name'
+                }) 
             })
         });
 
@@ -213,7 +214,7 @@ exports.createStudent = async (req,res,next)=>{
         req.body.isPending = true;
         // req.body.expireAt.index.expires = '5m';
         var user = await User.create(req.body);
-        const requestUrl = `${req.protocol}://${req.get('host')}/users/${user._id}`;
+        const requestUrl = `${req.protocol}://${req.get('host')}/users/verify/${user._id}`;
         const message = `Hi ${user.name},\n\nClick the following link to verify your account\n\n${requestUrl}`;
 
         await sendMail({
@@ -304,7 +305,6 @@ exports.updateProfilePicture = async (req,res,next)=>{
         });
         
     } catch (error) {
-        console.log(error)
         next(error);
     }
 };
@@ -357,7 +357,7 @@ exports.addToCart = async (req,res,next)=>{
 };
 
 //PUT update user
-//URL /
+//URL /:userid
 //Private
 exports.verifyUser = async (req,res,next)=>{
     try {
@@ -372,6 +372,7 @@ exports.verifyUser = async (req,res,next)=>{
         res.status(200).sendFile(path.join(process.cwd()+'/utils/index.html'));
         
     } catch (error) {
+        console.log(error)
         res.status(404).sendFile(path.join(process.cwd()+'/utils/error.html'));
     }
 };
