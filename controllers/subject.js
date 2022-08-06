@@ -283,7 +283,7 @@ exports.updateClassPoster = async (req,res,next)=>{
     try {
         const subject = await Subject.findById(req.params.subjectid);
         await deleteFile(subject.post.id);
-        var result = await uploadFiles(req.fileName);
+        var result = await uploadFiles(req.file);
 
         if(result){
             var id = result.response['id'];
