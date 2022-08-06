@@ -110,7 +110,7 @@ exports.getMyEnrolledClasses = async (req, res, next) => {
                 select: 'stream teacher subject subtopic type fee post averageRating',
                 populate:({
                     path: 'teacher',
-                    select: 'name'
+                    select: 'title name'
                 }) 
             })
         });
