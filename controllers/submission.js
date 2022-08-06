@@ -73,7 +73,7 @@ exports.getMySubmission = async (req,res,next)=>{
 exports.createSubmission = async (req,res,next)=>{
     
     try {
-        var result = await uploadFiles(req.fileName);
+        var result = await uploadFiles(req.file);
         let document;
         
         if(result){
