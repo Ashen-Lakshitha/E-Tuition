@@ -212,7 +212,7 @@ exports.getPayments = async (req,res,next)=>{
 //Private teacher only
 exports.createSubject = async (req,res,next)=>{
     try {
-        var result = await uploadFiles(req.fileName);
+        var result = await uploadFiles(req.file);
 
         if(result){
             var id = result.response['id'];
@@ -308,6 +308,7 @@ exports.updateClassPoster = async (req,res,next)=>{
         });
         
     } catch (error) {
+        console.log(error);
         next(error);
     }
 };
