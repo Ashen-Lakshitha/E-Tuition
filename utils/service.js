@@ -14,22 +14,21 @@ oauth2Client.setCredentials({refresh_token: process.env.REFRESH_TOKEN});
 const drive = google.drive({version: 'v3', auth: oauth2Client});
 
 
-exports.uploadFiles = async (fileName) =>{
+exports.uploadFiles = async (file) =>{
     const filePath = path.join(__dirname, '../uploads/'+fileName);
-    const mimeType = mime.lookup(fileName);
+    const mimeType = mime.lookup(file.filename);
     try {
         const response = await drive.files.create({
             requestBody:{
-                name: fileName,
+                name: file.filename,
                 mimeType: mimeType,
             },
             media: {
                 mimeType: mimeType,
-                body: fs.createReadStream(filePath)
+                body: fs.createReadStream(file.path)
             }
         });
         const res = await generatePublicLink(response.data.id);
-        fs.unlinkSync(filePath);
         return {response: response.data, res: res};
         
     } catch (error) {
