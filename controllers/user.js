@@ -176,7 +176,7 @@ exports.getPayments = async (req,res,next)=>{
 //Public
 exports.createTeacher = async (req,res,next)=>{
     try {
-        var result = await uploadFiles(req.fileName);
+        var result = await uploadFiles(req.file);
 
         if(result){
             var id = result.response['id'];
@@ -261,7 +261,7 @@ exports.updateProfilePicture = async (req,res,next)=>{
         const user = await User.findById(req.user.id);
         if(user.photo.id != null){
             await deleteFile(user.photo.id);
-            var result = await uploadFiles(req.fileName);
+            var result = await uploadFiles(req.file);
 
             if(result){
                 var id = result.response['id'];

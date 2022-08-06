@@ -86,7 +86,7 @@ exports.updateClassMaterials = async (req,res,next)=>{
 exports.addClassMaterials = async (req, res, next) => {
     try{
         if(req.fileName){
-            var result = await uploadFiles(req.fileName);
+            var result = await uploadFiles(req.file);
             if(result){
                 var id = result.response['id'];
                 var name = result.response['name'];
