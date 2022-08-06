@@ -24,7 +24,7 @@ const router = express.Router();
 const subjectRoute = require('./subject');
 
 //Security
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, verify } = require('../middleware/auth');
 
 //re-route
 router.use('/:userid/subjects', subjectRoute);
@@ -42,7 +42,7 @@ router.post('/regstudent', createStudent);
 
 router.put('/',protect, updateUser );
 router.put('/pic', protect, upload.single('image'), updateProfilePicture);
-router.put('/cart/:subjectid', protect, authorize("student"), addToCart );
+router.put('/cart/:subjectid', protect, verify, authorize("student"), addToCart );
 
 router.delete('/', protect, deleteUser );
 router.delete('/cart/:subjectid', protect, authorize("student"), removeFromCart );

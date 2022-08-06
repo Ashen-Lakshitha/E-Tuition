@@ -477,7 +477,6 @@ exports.enrollStudentByTeacher = async (req,res,next)=>{
 exports.unEnrollStudent = async (req,res,next)=>{
     try {
         const subject = await Subject.findById(req.params.subjectid);
-        const user = await User.findById(req.user.id);
 
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
