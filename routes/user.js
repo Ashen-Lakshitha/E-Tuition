@@ -11,6 +11,7 @@ const {
     createTeacher,
     createStudent,
     updateUser,
+    openToEnroll,
     verifyUser,
     addToCart,
     updateProfilePicture,
@@ -41,6 +42,7 @@ router.post('/regteacher',upload.single('verifications'), createTeacher);
 router.post('/regstudent', createStudent);
 
 router.put('/',protect, updateUser );
+router.put('/opentoenroll',protect, openToEnroll );
 router.put('/pic', protect, upload.single('image'), updateProfilePicture);
 router.put('/cart/:subjectid', protect, verify, authorize("student"), addToCart );
 

@@ -14,6 +14,7 @@ const {
     unEnrollStudent,
     enrollStudentByTeacher,
     payClass,
+    temporaryPaid,
     deleteSubject,
 } = require('../controllers/subject');
 
@@ -64,6 +65,10 @@ router
 router
     .route('/:subjectid/pay')
     .put(protect, payClass);
+
+router
+    .route('/:subjectid/pay/:userid')
+    .put(protect, temporaryPaid);
 
 router
     .route('/:subjectid/post')

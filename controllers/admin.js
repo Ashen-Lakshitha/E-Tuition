@@ -76,11 +76,11 @@ exports.getStudents = async (req,res,next)=>{
 //Private admin only
 exports.getSignupReq = async (req, res, next) => {
     try {
-        const student = await User.find({role: 'teacher', isPending: true});
+        const teachers = await User.find({role: 'teacher', isPending: true});
 
         res.status(200).json({
            success: true,
-           data: student
+           data: teachers
         });
         
     } catch (error) {

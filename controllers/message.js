@@ -72,9 +72,10 @@ exports.createChat =  async(req,res,next)=>{
                     req.body.teacher = req.user._id;
                     req.body.student = req.params.userid;
                     req.body.subject = req.params.subjectid;
-                    req.body.msg.role = req.user.role;
 
-                    await Message.create(req.body);
+                    var msg = await Message.create(req.body);
+                    await msg.msg.push({"role": req.user.role, "msg": req.body.msg});
+                    
                     res.status(200).json({
                         success: true
                     });

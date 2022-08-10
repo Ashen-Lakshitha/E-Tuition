@@ -43,6 +43,15 @@ const SubjectSchema = new mongoose.Schema({
         ],
         required:[true, 'Please add a type']
     },
+    medium:{
+        type: String,
+        enum:[
+            "English",
+            "Sinhala",
+            "Tamil",       
+        ],
+        required:[true, 'Please add a medium']
+    },
     description: {
         type: String,
         required: [true, 'Please add a description'],
@@ -94,7 +103,7 @@ const SubjectSchema = new mongoose.Schema({
                 {
                     date:{ 
                         type: Date,
-                        default: Date()
+                        default: Date.now()
                     },
                     isPaid:{
                         type : Boolean,
@@ -104,6 +113,14 @@ const SubjectSchema = new mongoose.Schema({
                     paymentType:String
                 }
             ],
+            arrears:{
+                type: Boolean,
+                default: false
+            },
+            temporaryAccess:{
+                type: Boolean,
+                default: false
+            },
             isEnrolled:{
                 type : Boolean,
                 default: true

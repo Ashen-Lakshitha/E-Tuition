@@ -1,6 +1,8 @@
 const Quiz = require('../models/Quiz');
+const User = require('../models/User');
 const Submission = require('../models/Submission');
 const Lms = require('../models/Lms');
+const Subject = require('../models/Subject');
 const ErrorResponse = require('../utils/errorResponse');
 const {uploadFiles, deleteFile} = require('../utils/service');
 
@@ -10,16 +12,129 @@ const {uploadFiles, deleteFile} = require('../utils/service');
 exports.getLms = async (req,res,next)=>{
 
     try {
-        const lms = await Lms.find({subject: req.params.subjectid});
-        res
-            .status(200)
-            .json({
+        if(req.user.role == 'student'){
+            var user = await User.findById(req.user.id);
+            var subjects = user.enrolledSubjects.filter(subject => subject.subject== req.params.subjectid);
+           
+            var subject = await Subject.findById(req.params.subjectid);
+            var students = subject.enrolledStudents.filter(student => student.student == req.user.id);
+
+            
+            var date = new Date();
+            var currentMonth = date.toLocaleString('default', { month: 'long' });
+            var currentYear = date.getFullYear();
+
+            const lms = await Lms.find({subject: req.params.subjectid});
+
+            var list = subjects[0].payment.filter(payment => 
+                currentMonth.startsWith(payment.date.toString().split(' ')[1]) && payment.date.toString().split(' ')[3] == currentYear.toString()
+            )
+
+            if(parseInt(subjects[0].subject.payDate) > date.getMonth()){
+
+                if(list.length > 0){
+                    res
+                        .status(200)
+                        .json({
+                            success: true, 
+                            data: {
+                                "isPaid":"true",
+                                "fee": subject.fee,
+                                lms
+                            }
+                        });
+                }else{
+                    if(subject[0].temporaryAccess){
+                        res
+                            .status(200)
+                            .json({
+                                success: true, 
+                                data: {
+                                    "isPaid":"temp",
+                                    "fee": subject.fee,
+                                    lms
+                                }
+                            });
+                    }else{
+                        
+                        subjects[0].arrears = true;
+                        await user.save();
+        
+                        students[0].arrears = true;
+                        await subject.save();
+    
+                        res.status(200)
+                        .json({
+                            success: true, 
+                            data: {
+                                "isPaid":"arrears",
+                                "fee": subject.fee,
+                                "lms":[]
+                            }
+                        });
+                    }
+                }
+
+
+            }else{
+                if(subjects[0].arrears){
+                    res
+                    .status(200)
+                    .json({
+                        success: true, 
+                        data: {
+                            "isPaid":"arrears",
+                            "fee": subject.fee,
+                            "lms":[]
+                        }
+                    });
+                }else if(subjects[0].temporaryAccess){
+                    res
+                    .status(200)
+                    .json({
+                        success: true, 
+                        data: {
+                            "isPaid":"temp",
+                            "fee": subject.fee,
+                            lms
+                        }
+                    });
+                }else{
+                    if(list.length > 0){
+                        res
+                            .status(200)
+                            .json({
+                                success: true, 
+                                data: {
+                                    "isPaid":"true",
+                                    "fee": subject.fee,
+                                    lms
+                                }
+                        });
+                    }else{
+                        res
+                        .status(200)
+                        .json({
+                            success: true, 
+                            data: {
+                                "isPaid":"false",
+                                "fee": subject.fee,
+                                lms
+                            }
+                        });
+                    }
+                }
+            }
+        }else{
+            const lms = await Lms.find({subject: req.params.subjectid});
+            res.status(200).json({
                 success: true, 
-                count: lms.length,
                 data: lms
             });
+        }
 
     } catch (error) {
+        console.log(error);
         next(error);
     }
 };

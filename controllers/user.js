@@ -40,7 +40,7 @@ exports.getTeachers = async (req,res,next)=>{
 exports.getStudents = async (req,res,next)=>{
     try {
         if(req.query.name == null){
-            const students = await User.find({isPending: false,role : 'student'});
+            const students = await User.find({role : 'student'});
             res
                 .status(200)
                 .json({
@@ -49,7 +49,7 @@ exports.getStudents = async (req,res,next)=>{
                     data: students
                 });
         }else{
-            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false});
+            const students = await User.find({name: { $regex : req.query.name, $options : 'i'}, role : 'student', isPending: false, openToEnroll: true});
             res
                 .status(200)
                 .json({
@@ -229,6 +229,7 @@ exports.createStudent = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error);
         next(error);
     }
 };
@@ -242,6 +243,25 @@ exports.updateUser = async (req,res,next)=>{
             new: true,
             runValidators: true
         });
+        
+        res.status(200).json({
+            success: true, 
+            data: user
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
+//PUT update openToEnroll
+//URL /opentoenroll
+//Private
+exports.openToEnroll = async (req,res,next)=>{
+    try {
+        const user = await User.findById(req.user.id);
+        user.openToEnroll = !user.openToEnroll;
+        await user.save();
         
         res.status(200).json({
             success: true, 
@@ -281,7 +301,7 @@ exports.updateProfilePicture = async (req,res,next)=>{
             user.photo = req.body.photo;
             await user.save();
         }else{
-            var result = await uploadFiles(req.fileName);
+            var result = await uploadFiles(req.file);
             if(result){
                 var id = result.response['id'];
                 var name = result.response['name'];
