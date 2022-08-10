@@ -249,8 +249,7 @@ exports.updateQuiz = async (req,res,next)=>{
                 new ErrorResponse(`User is not authorized to update quiz`, 401)
                     );
         }
-        
-        if(quiz.submissions != []){
+        if(quiz.submissions.length != 0){
             return next(new ErrorResponse(`Students have already submitted answers`, 404));
         }
 

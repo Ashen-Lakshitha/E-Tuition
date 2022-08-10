@@ -72,7 +72,7 @@ const UserSchema = new mongoose.Schema({
                 {
                     date:{ 
                         type: Date,
-                        default: Date()
+                        default: Date.now()
                     },
                     isPaid:{
                         type : Boolean,
@@ -82,6 +82,14 @@ const UserSchema = new mongoose.Schema({
                     paymentType:String
                 }
             ],
+            arrears:{
+                type: Boolean,
+                default: false
+            },
+            temporaryAccess:{
+                type: Boolean,
+                default: false
+            },
             isEnrolled: {
                 type: Boolean,
                 default: true
@@ -101,6 +109,10 @@ const UserSchema = new mongoose.Schema({
         }
     ],
     isPending:{
+        type:Boolean,
+        default: false
+    },
+    openToEnroll:{
         type:Boolean,
         default: false
     },
