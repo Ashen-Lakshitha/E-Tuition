@@ -52,7 +52,7 @@ router
 
 router
     .route('/:subjectid/getpayments')
-    .get(protect, authorize('teacher'), getPayments);
+    .get(protect, authorize('admin','teacher'), getPayments);
 
 router
     .route('/:subjectid/enroll')
