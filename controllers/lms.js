@@ -329,6 +329,9 @@ exports.deleteClassMaterials = async (req,res,next)=>{
         }
         
         lms.content.forEach(async (doc) => {
+            if(doc['uploadType'] == 'classNotes'){
+                await deleteFile(doc['document']['id']);
+            }
             if(doc['uploadType'] == 'assignments'){
                 await Submission.findOneAndDelete({assignmentId: doc['_id']});
                 await deleteFile(doc['document']['id']);
@@ -337,7 +340,7 @@ exports.deleteClassMaterials = async (req,res,next)=>{
                 await Quiz.findOneAndDelete({subject: doc['_id']});
                 await lms.content.pull(doc);
                 const quiz = await Quiz.findById(doc['quiz']);
-                quiz.submissios = [];
+                quiz.submissions = [];
                 await quiz.save();
             }
         });

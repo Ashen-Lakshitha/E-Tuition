@@ -2,6 +2,7 @@ const express = require('express');
 
 const {
     getUsers,
+    getAnalytics,
     getTeachers,
     getStudents,
     getSignupReq,
@@ -19,6 +20,7 @@ const { protect, authorize } = require('../middleware/auth');
 router.use('/subjects', protect, authorize('admin'), subjectRouter);
 
 router.get("/", protect, authorize('admin'), getUsers );
+router.get("/analytics", protect, authorize('admin'), getAnalytics );
 router.get("/teachers", protect, authorize('admin'), getTeachers );
 router.get("/students", protect, authorize('admin'), getStudents );
 router.get('/req',protect, authorize("admin"), getSignupReq );

@@ -15,7 +15,6 @@ exports.getUsers = async (req,res,next)=>{
             .status(200)
             .json({
                 success: true, 
-                success: true, 
                 data: [
                 {count: teachers.length,
                 name: "Teachers",
@@ -26,6 +25,36 @@ exports.getUsers = async (req,res,next)=>{
                 {count: subjects.length,
                 name: "Classes",
                 image: "https://img.freepik.com/free-vector/focused-tiny-people-reading-books_74855-5836.jpg?w=2000",}]
+            });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+//GET get subjects analytics
+//URL admin/analytics
+//Private admin only
+exports.getAnalytics = async (req,res,next)=>{
+
+    try {
+        const subjects = await Subject.find();
+        var science = subjects.filter(subject => subject.stream == "Science");
+        var arts = subjects.filter(subject => subject.stream == "Art");
+        var commerce = subjects.filter(subject => subject.stream == "Commerce");
+        var tech = subjects.filter(subject => subject.stream == "Technology");
+        var other = subjects.filter(subject => subject.stream == "Other");
+
+        res
+            .status(200)
+            .json({
+                success: true, 
+                data: 
+                {"science":science.length,
+                "arts":arts.length,
+                "commerce":commerce.length,
+                "tech":tech.length,
+                "other":other.length}
             });
 
     } catch (error) {
