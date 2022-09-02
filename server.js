@@ -26,9 +26,13 @@ const complain = require('./routes/complain');
 const message = require('./routes/message');
 const admin = require('./routes/admin');
 const notification = require('./routes/notification');
-
+ const { Server } = require("socket.io");
+  
 const app = express();
 const port = process.env.PORT || 5000;
+//var server = http.createServer(app);
+
+
 
 //Body Parser
 app.use(express.json())
@@ -61,8 +65,33 @@ app.use('/notification', notification);
 //errorHhandler middleware
 app.use(errorHandler);
 
-const server = app.listen(port, console.log(`Server is running in port ${port}`));
 
+
+const server = app.listen(port, console.log(`Server is running in port ${port}`));
+const io = new Server(server, {
+    cors:{
+        origin:"*",
+        methods:["GET","POST "],
+    },
+});
+
+io.on("connection",(socket)=>{
+    console.log("User Connected :",socket.id);
+
+    socket.on("join_room", (data)=>{
+        socket.join(data);
+        console.log(`User with ID: ${socket.id} joined room : ${data}`)
+    });
+
+    socket.on("send_message",(data)=>{
+        socket.to(data.room).emit("receive_message", data);
+        //console.log(data);
+    })
+
+    socket.on("disconnect", ()=>{
+        console.log("User Disconnected :",socket.id);
+    })
+})
 //handle unhandled promise rejections
 process.on('unhandledRejection', (err,promise)=>{
     console.log(`Error: ${err.message}`);
