@@ -16,15 +16,15 @@ exports.getUsers = async (req,res,next)=>{
             .json({
                 success: true, 
                 data: [
-                {count: teachers.length,
-                name: "Teachers",
-                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOEuaL14xHFILfpNxSISzrJE3bnBckLdpHvA&usqp=CAU",},
-                {count: students.length,
-                name:  "Students",
-                image: "https://img.freepik.com/free-vector/noisy-big-megaphone_74855-7630.jpg?w=2000",},
-                {count: subjects.length,
-                name: "Classes",
-                image: "https://img.freepik.com/free-vector/focused-tiny-people-reading-books_74855-5836.jpg?w=2000",}]
+                    {count: teachers.length,
+                        name: "Teachers",
+                        image: "https://i.ibb.co/kqHJxg0/vecteezyteacher-s-daybackground-YK0221-generated.jpg",},
+                        {count: students.length,
+                        name:  "Students",
+                        image: "https://i.ibb.co/gFfns3n/vecteezy-happy-students-go-to-school.jpg",},
+                        {count: subjects.length,
+                        name: "Classes",
+                        image: "https://i.ibb.co/jzfvWS9/4529183.jpg",}]
             });
 
     } catch (error) {

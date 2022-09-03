@@ -1,10 +1,10 @@
+const Lms = require('../models/Lms');
 const Quiz = require('../models/Quiz');
 const User = require('../models/User');
-const Submission = require('../models/Submission');
-const Lms = require('../models/Lms');
 const Subject = require('../models/Subject');
-const ErrorResponse = require('../utils/errorResponse');
+const Submission = require('../models/Submission');
 const {uploadFiles, deleteFile} = require('../utils/service');
+const ErrorResponse = require('../utils/errorResponse');
 
 //GET get all class materials
 ///url/subject/:subjectid/lms
@@ -172,6 +172,7 @@ exports.updateLms = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };
@@ -196,9 +197,10 @@ exports.updateClassMaterials = async (req,res,next)=>{
 };
 
 //POST create class materials
-//URL /:lmsid/lmsdoc
+//URL /:lmsid/lms
 //Private teacher only
 exports.addClassMaterials = async (req, res, next) => {
+    console.log(req)
     try{
         if(req.fileName){
             var result = await uploadFiles(req.file);
@@ -217,7 +219,7 @@ exports.addClassMaterials = async (req, res, next) => {
                     webContentLink
                 };
                 var lms = await Lms.findById(req.params.lmsid);
-                await lms.content.push(req.body);
+                lms.content.push(req.body);
                 await lms.save();
 
                 res.status(200).json({
@@ -255,7 +257,6 @@ exports.addClassMaterials = async (req, res, next) => {
         }
         
     }catch(error){
-        console.log(error);
         next(error);
     }
 };
@@ -289,7 +290,9 @@ exports.deleteLms = async (req,res,next)=>{
                 await deleteFile(doc['document']['id']);
             }
             if(doc['uploadType'] == 'quiz'){
-                await Quiz.findOneAndDelete({subject: doc['_id']});
+                const quiz = await Quiz.findById(doc['quiz']);
+                quiz.submissions = [];
+                await quiz.save();
             }
         });
             
@@ -327,28 +330,30 @@ exports.deleteClassMaterials = async (req,res,next)=>{
                 )
             );
         }
+
+        var docs = lms.content.filter(doc =>  doc._id == req.params.docid );
         
-        lms.content.forEach(async (doc) => {
-            if(doc['uploadType'] == 'classNotes'){
-                await deleteFile(doc['document']['id']);
+        if(docs[0]['uploadType'] == 'classNotes'){
+            await deleteFile(docs[0]['document']['id']);
+        }
+        else if(docs[0]['uploadType'] == 'assignments'){
+            var submission = await Submission.findOne({assignmentId: docs[0]['_id']});
+            for (const sub of submission.submissions) {
+                deleteFile(sub.document['id']);
             }
-            else if(doc['uploadType'] == 'assignments'){
-                await Submission.findOneAndDelete({assignmentId: doc['_id']});
-                await deleteFile(doc['document']['id']);
-            }
-            else if(doc['uploadType'] == 'quiz'){
-                await Quiz.findOneAndDelete({subject: doc['_id']});
-                await lms.content.pull(doc);
-                const quiz = await Quiz.findById(doc['quiz']);
-                quiz.submissions = [];
-                await quiz.save();
-            }else{
-                await Lms.findByIdAndUpdate({"_id": req.params.lmsid}, 
-                  {"$pull": {"content": {"_id": req.params.docid}}});
-            }
-        });
-
-
+            await deleteFile(docs[0]['document']['id']);
+            await submission.remove();
+        }
+        else if(docs[0]['uploadType'] == 'quiz'){
+            // await Quiz.findOneAndDelete({subject: docs[0]['quiz']});
+            await lms.content.pull(docs[0]);
+            const quiz = await Quiz.findById(docs[0]['quiz']);
+            quiz.submissions = [];
+            await quiz.save();
+        }
+            
+        await Lms.findByIdAndUpdate({"_id": req.params.lmsid}, 
+        {"$pull": {"content": {"_id": req.params.docid}}});
 
         res.status(200).json({
             success: true, 
@@ -356,6 +361,7 @@ exports.deleteClassMaterials = async (req,res,next)=>{
         });
         
     } catch (error) {
+        console.log(error)
         next(error);
     };
 };

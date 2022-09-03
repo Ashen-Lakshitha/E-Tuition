@@ -132,7 +132,7 @@ exports.getSubjectPublic = async (req,res,next)=>{
 //Private teacher only
 exports.getMySubjects = async (req, res, next) => {
     try {
-        const subjects = await Subject.find({teacher: req.user._id}, '-enrolledStudents');
+        const subjects = await Subject.find({teacher: req.user._id});
 
         res.status(200).json({
            success: true,
@@ -147,7 +147,7 @@ exports.getMySubjects = async (req, res, next) => {
 //GET get payments in the class
 //URL /subjects/:subjectid/getpayments
 //Private teacher only
-exports.getPayments = async (req,res,next)=>{
+exports. getPayments = async (req,res,next)=>{
     try {
         let students = [];
         let pcount = 0;
@@ -185,7 +185,7 @@ exports.getPayments = async (req,res,next)=>{
             subject['enrolledStudents'].forEach(element => {
                 element.payment.forEach((payment) => {
                     if(month.startsWith(payment.date.toString().split(' ')[1]) && payment.date.toString().split(' ')[3] == year.toString()){
-                        students.push({_id:element['student']['_id'], name:element['student']['name'], email: element['student']['email'], payment,enrolledDate:student.enrolledDate});
+                        students.push({_id:element['student']['_id'], name:element['student']['name'], email: element['student']['email'], payment,enrolledDate:element.enrolledDate});
                     }
                 });
             });
@@ -238,6 +238,7 @@ exports.createSubject = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };
@@ -454,6 +455,8 @@ exports.payClass = async(req,res,next) => {
 
         req.body.subject = req.params.subjectid;
         req.body.student = req.user._id;
+        req.body.arrears = false;
+        req.body.temporaryAccess = false;
 
         if(!subject){
             return next(new ErrorResponse(`Subject not found`, 404));
@@ -474,8 +477,6 @@ exports.payClass = async(req,res,next) => {
                 return next(new ErrorResponse(`Class is full`, 400));
             }
 
-            req.body.subject = req.params.subjectid;
-            req.body.student = req.user.id;
             await user.enrolledSubjects.push(req.body);
             await user.save();
 

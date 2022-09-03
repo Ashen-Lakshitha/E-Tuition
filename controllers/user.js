@@ -212,15 +212,14 @@ exports.createTeacher = async (req,res,next)=>{
 exports.createStudent = async (req,res,next)=>{
     try {
         req.body.isPending = true;
-        // req.body.expireAt.index.expires = '5m';
         var user = await User.create(req.body);
         const requestUrl = `${req.protocol}://${req.get('host')}/users/verify/${user._id}`;
-        const message = `Hi ${user.name},\n\nClick the following link to verify your account\n\n${requestUrl}`;
+        const args = {url:requestUrl, name: user.name};
 
         await sendMail({
             email: user.email,
             subject: 'E-mail verification',
-            message
+            args
         });
 
         res.status(200).json({
@@ -229,7 +228,6 @@ exports.createStudent = async (req,res,next)=>{
         });
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -392,7 +390,6 @@ exports.verifyUser = async (req,res,next)=>{
         res.status(200).sendFile(path.join(process.cwd()+'/utils/index.html'));
         
     } catch (error) {
-        console.log(error)
         res.status(404).sendFile(path.join(process.cwd()+'/utils/error.html'));
     }
 };

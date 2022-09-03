@@ -3,6 +3,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const jwt = require('jsonwebtoken');
 
 exports.protect = async (req, res, next)=>{
+    console.log(req.body)
     try {
         let token;
         if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){

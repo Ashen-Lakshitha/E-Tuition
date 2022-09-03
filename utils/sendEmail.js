@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const confirmation = require('../template/confirmation');
 
 const sendEmail = async (options) => {
   
@@ -15,7 +16,7 @@ const sendEmail = async (options) => {
     from: `${process.env.FROM_NAME} <${process.env.SMTP_EMAIL}>`,
     to: options.email,
     subject: options.subject,
-    text: options.message,
+    html: confirmation(options.args),
   };
 
   const info = await transporter.sendMail(message);
