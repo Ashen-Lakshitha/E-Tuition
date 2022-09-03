@@ -24,6 +24,6 @@ router
 router
     .route('/:assignmentid/:submissionid')
     .put(protect, authorize('student'), updateSubmission)
-    .delete(protect, deleteSubmission);
+    .delete(protect,authorize('student'), deleteSubmission);
 
 module.exports = router;

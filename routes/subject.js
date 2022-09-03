@@ -23,6 +23,8 @@ const quizRouter = require('./quiz');
 const chatRouter = require('./message');
 const lmsRouter = require('./lms');
 const notiRouter = require('./notification');
+const paymentRouter = require('./payment');
+const submissionRouter = require('./submission');
 
 const router = express.Router({mergeParams: true});
 
@@ -34,6 +36,8 @@ router.use('/:subjectid/reviews',reviewRouter);
 router.use('/:subjectid/quiz',quizRouter);
 router.use('/:subjectid/msges', chatRouter);
 router.use('/:subjectid/notification', notiRouter);
+router.use('/:subjectid/payments', paymentRouter);
+router.use('/:subjectid/submissions', submissionRouter);
 
 router
     .route('/')

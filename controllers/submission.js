@@ -1,28 +1,44 @@
 const Submission = require('../models/Submission');
-const User = require('../models/User');
+const Subject = require('../models/Subject');
 const ErrorResponse = require('../utils/errorResponse');
 const {uploadFiles, deleteFile} = require('../utils/service');
 
 //GET get all assignment submissions for teacher
-//URL /assignment/:assignmentid/al;
+//URL /assignment/:assignmentid/all;
 //private
 exports.getSubmissions = async (req,res,next)=>{
     try {
-        const assignment = await Submission.findOne({assignmentid:req.params.assignmentid}).populate({
-            path:'submissions',
-            populate:({
-                path:'student',
-                select:'name email photo'
-            })
-        });
-        console.log(assignment)
-        res.status(200).json({
-            success: true,
-            data: assignment.submissions
-        });
 
+        var assignment = await Submission.findOne({assignmentid:req.params.assignmentid});
+        const subject = await Subject.findById(req.params.subjectid)
+        if(!assignment){
+            res.status(200).json({
+                success: true,
+                data: {submissions:[], total:subject.enrolledStudents.length, count:0}
+            });
+        }else{
+
+            assignment = await Submission.findOne({assignmentid:req.params.assignmentid}).populate({
+                path:'submissions',
+                populate:({
+                    path:'student',
+                    select:'name email photo'
+                })
+            });
+
+            if(req.params.subjectid){
+                res.status(200).json({
+                    success: true,
+                    data: {submissions:assignment.submissions, total:subject.enrolledStudents.length, count:assignment.submissions.length}
+                });
+            }else{
+                res.status(200).json({
+                    success: true,
+                    data: {submissions:assignment.submissions, count:assignment.submissions.length}
+                });
+            }
+        }
     } catch (error) {
-        console.log(error)
         next(error);
     }
 };
@@ -32,7 +48,6 @@ exports.getSubmissions = async (req,res,next)=>{
 //Private
 exports.getMySubmission = async (req,res,next)=>{
     try {
-
         var isSubmitted = false;
         const assignment = await Submission.findOne({assignmentId : req.params.assignmentid})
 
@@ -92,10 +107,10 @@ exports.createSubmission = async (req,res,next)=>{
             };
             
         }
-        //check data row for given ass id
-        const ass = await Submission.find({assignmentId : req.params.assignmentid})
         
-        if(ass!= null){
+        const assignment = await Submission.findOne({assignmentId : req.params.assignmentid});
+        
+        if(assignment == null){
             req.body.assignmentId = req.params.assignmentid;
             const ass = await Submission.create(req.body);
             await ass.submissions.push({student:req.user.id, document})
@@ -104,13 +119,12 @@ exports.createSubmission = async (req,res,next)=>{
             await ass.submissions.push({student:req.user.id, document})
             await ass.save();
         }
-        // console.log("error");
         res.status(200).json({
             success: true, 
         });
        
     } catch (error) {
-        // console.log(error);
+        console.log(error)
         next(error);
     }
 };
@@ -126,7 +140,7 @@ exports.updateSubmission = async (req,res,next)=>{
             return next(new ErrorResponse(`Assignment not found id with ${req.params.assignmentid}`, 404));
         }
                 
-        assignment = await Assignment.findByIdAndUpdate(req.params.assignmentid, req.body, {
+        assignment = await Submission.findByIdAndUpdate(req.params.assignmentid, req.body, {
             new: true,
             runValidators: true
         });
@@ -150,7 +164,10 @@ exports.deleteSubmission = async (req,res,next)=>{
         if(!assignment){
             return next(new ErrorResponse(`assignment not found`, 404));
         }
-        await Assignment.findOneAndUpdate({"assignmentId": req.params.assignmentid}, 
+        var submission = assignment.submissions.filter((sub) => sub['student'] == req.user.id);
+        deleteFile(submission[0].document.id);
+
+        await Submission.findOneAndUpdate({"assignmentId": req.params.assignmentid}, 
           {"$pull": {"submissions": {"_id": req.params.submissionid}}});
         res.status(200).json({
             success: true, 

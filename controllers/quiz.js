@@ -189,11 +189,14 @@ exports.getSubmissions = async (req,res,next)=>{
             return next(new ErrorResponse(`Quiz not found id with ${req.params.quizid}`, 404));
         }
 
+        var subject = await Subject.findOne({teacher:req.user.id});
+
         res.status(200).json({
             success: true, 
             data: {
                 submissions: quiz.submissions,
-                count: quiz.submissions.length
+                count: quiz.submissions.length,
+                total: subject.enrolledStudents.length
             },
         });
         

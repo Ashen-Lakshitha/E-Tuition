@@ -35,8 +35,8 @@ router.get("/students", protect, authorize("admin", "teacher"), getStudents);
 router.get('/myclasses',protect, authorize("student"), getMyEnrolledClasses );
 router.get('/cart',protect, authorize("student"), getCart );
 router.get('/payments',protect, getPayments );
-router.get('/:userid',protect, getUser );
 router.get('/verify/:userid', verifyUser );
+router.get('/:userid',protect, getUser );
 
 router.post('/regteacher',upload.single('verifications'), createTeacher);
 router.post('/regstudent', createStudent);

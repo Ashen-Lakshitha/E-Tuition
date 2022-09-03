@@ -1,3 +1,4 @@
+const { TokenExpiredError } = require("jsonwebtoken");
 const Notification = require("../models/notification");
 const ErrorResponse = require('../utils/errorResponse');
 
@@ -32,19 +33,18 @@ exports.viewNotifications = async (req, res, next) => {
         }else{
             var notificationList;
             var all = [];
-            req.user.enrolledSubjects.forEach(async element => {
+            for(var element of req.user.enrolledSubjects) {
                 notificationList = await Notification.findOne({subjectId: element.subject});
-                if(notificationList != null){
-                    all.push(notificationList.notifications);
-                }
                 
-            });
-            
+                if(notificationList != null){
+                     all = [...all, ...notificationList.notifications];
+                }
+            };
             
             res.status(200).json({
-           success: true,
-           data: all
-        });
+                success: true,
+                data: all                  
+                });
         }
         
     }  
