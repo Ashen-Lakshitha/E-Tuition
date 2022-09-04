@@ -5,6 +5,7 @@ const {
     getSubmissions,
     createQuiz,
     updateQuiz,
+    closeQuiz,
     deleteQuiz,
     submitQuiz,
     getMyAnswers,
@@ -32,6 +33,9 @@ router
     .get(protect, getQuiz)
     .put(protect, authorize('teacher'), updateQuiz)
     .delete(protect, authorize('teacher'), deleteQuiz);
+
+router.route('/:quizid/close')
+    .put(protect, authorize('teacher'), closeQuiz);
 
 router
     .route('/:quizid/submit')

@@ -11,9 +11,14 @@ const {
     deleteLms
 } = require('../controllers/lms');
 
+const submissionRouter = require('./submission');
+
 const router = express.Router({mergeParams: true});
 
 const { protect, authorize } = require('../middleware/auth');
+
+//re-route
+router.use('/:subjectid/submissions', submissionRouter);
 
 router.get('/',protect, getLms);
 router.post('/',protect, authorize('teacher'), createLms);
