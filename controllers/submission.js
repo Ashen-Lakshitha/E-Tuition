@@ -1,5 +1,6 @@
 const Submission = require('../models/Submission');
 const Subject = require('../models/Subject');
+const Lms = require('../models/Lms');
 const ErrorResponse = require('../utils/errorResponse');
 const {uploadFiles, deleteFile} = require('../utils/service');
 
@@ -9,16 +10,16 @@ const {uploadFiles, deleteFile} = require('../utils/service');
 exports.getSubmissions = async (req,res,next)=>{
     try {
 
-        var assignment = await Submission.findOne({assignmentid:req.params.assignmentid});
+        var assignment = await Submission.findOne({assignmentId:req.params.assignmentid});
         const subject = await Subject.findById(req.params.subjectid)
         if(!assignment){
             res.status(200).json({
                 success: true,
-                data: {submissions:[], total:subject.enrolledStudents.length, count:0}
+                data: {submissions:[]}
             });
         }else{
 
-            assignment = await Submission.findOne({assignmentid:req.params.assignmentid}).populate({
+            assignment = await Submission.findOne({assignmentId:req.params.assignmentid}).populate({
                 path:'submissions',
                 populate:({
                     path:'student',
@@ -83,45 +84,60 @@ exports.getMySubmission = async (req,res,next)=>{
 };
 
 //POST create assignment
-//URL /assignment/:assignmentid
+//URL subjects/:subjectid/submissions/:submissionid
 //Private teacher only
 exports.createSubmission = async (req,res,next)=>{
     
     try {
-        var result = await uploadFiles(req.file);
-        let document;
-        
-        if(result){
-            var id = result.response['id'];
-            var name = result.response['name'];
-            var mimeType = result.response['mimeType'];
-            var webViewLink = result.res['webViewLink'];
-            var webContentLink = result.res['webContentLink'];
-            
-            document = {
-                id,
-                name,
-                mimeType,
-                webViewLink,
-                webContentLink
-            };
-            
-        }
-        
-        const assignment = await Submission.findOne({assignmentId : req.params.assignmentid});
-        
-        if(assignment == null){
-            req.body.assignmentId = req.params.assignmentid;
-            const ass = await Submission.create(req.body);
-            await ass.submissions.push({student:req.user.id, document})
-            await ass.save();
-        }else{
-            await ass.submissions.push({student:req.user.id, document})
-            await ass.save();
-        }
-        res.status(200).json({
-            success: true, 
+        var lms = await Lms.findById(req.params.subjectid);
+        var late = false;
+        var date = new Date();
+        lms.content.forEach(element => {
+            if(element._id == req.params.assignmentid){
+                if(element.dueDate<date.toISOString().substring(0,10)){
+                    late = true;
+                }
+            }
         });
+
+        if(late){
+            return next(new ErrorResponse(`Late Submission`, 400));
+        }else{
+            var result = await uploadFiles(req.file);
+            let document;
+            
+            if(result){
+                var id = result.response['id'];
+                var name = result.response['name'];
+                var mimeType = result.response['mimeType'];
+                var webViewLink = result.res['webViewLink'];
+                var webContentLink = result.res['webContentLink'];
+                
+                document = {
+                    id,
+                    name,
+                    mimeType,
+                    webViewLink,
+                    webContentLink
+                };
+                
+            }
+            
+            const assignment = await Submission.findOne({assignmentId : req.params.assignmentid});
+            
+            if(assignment == null){
+                req.body.assignmentId = req.params.assignmentid;
+                const ass = await Submission.create(req.body);
+                await ass.submissions.push({student:req.user.id, document})
+                await ass.save();
+            }else{
+                await assignment.submissions.push({student:req.user.id, document})
+                await assignment.save();
+            }
+            res.status(200).json({
+                success: true, 
+            });
+        }
        
     } catch (error) {
         console.log(error)
@@ -160,11 +176,12 @@ exports.updateSubmission = async (req,res,next)=>{
 //Private teacher only
 exports.deleteSubmission = async (req,res,next)=>{
     try {
-        const assignment = await Submission.findOne({assinmentId:req.params.assignmentid});
+        const assignment = await Submission.findOne({assignmentId: req.params.assignmentid});
         if(!assignment){
             return next(new ErrorResponse(`assignment not found`, 404));
         }
-        var submission = assignment.submissions.filter((sub) => sub['student'] == req.user.id);
+    
+        var submission = assignment.submissions.filter(sub => sub._id == req.params.submissionid);
         deleteFile(submission[0].document.id);
 
         await Submission.findOneAndUpdate({"assignmentId": req.params.assignmentid}, 
@@ -175,6 +192,7 @@ exports.deleteSubmission = async (req,res,next)=>{
         });
         
     } catch (error) {
+        console.log(error);
         next(error);
     };
 };
