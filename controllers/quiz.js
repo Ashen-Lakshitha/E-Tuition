@@ -266,6 +266,39 @@ exports.updateQuiz = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+//PUT update quiz
+//URL quiz/:quizid/close
+//Private teacher only
+exports.closeQuiz = async (req,res,next)=>{
+    try {
+        let quiz = await Quiz.findById(req.params.quizid);
+
+        if(!quiz){
+            return next(new ErrorResponse(`Quiz not found`, 404));
+        }
+        
+        if(quiz.teacher.toString() !== req.user.id){
+            return next(
+                new ErrorResponse(`User is not authorized to update quiz`, 401)
+                    );
+        }
+        
+        quiz = await Quiz.findByIdAndUpdate(req.params.quizid, req.body, {
+            runValidators: true
+        });
+                
+        res.status(200).json({
+            success: true, 
+            data: quiz
+        });
+
+    } catch (error) {
+        console.log(error);
         next(error);
     }
 };

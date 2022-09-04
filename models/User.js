@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { match } = require('assert');
 
 const UserSchema = new mongoose.Schema({
     title: {
@@ -56,7 +57,9 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a password'],
         minlength: 6,
-        select: false
+        select: false,
+        match:[/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/,
+        'Password must contain at least one number and one special character']
     },
     role: {
         type: String,

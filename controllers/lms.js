@@ -134,7 +134,6 @@ exports.getLms = async (req,res,next)=>{
         }
 
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
@@ -200,7 +199,6 @@ exports.updateClassMaterials = async (req,res,next)=>{
 //URL /:lmsid/lms
 //Private teacher only
 exports.addClassMaterials = async (req, res, next) => {
-    console.log(req)
     try{
         if(req.fileName){
             var result = await uploadFiles(req.file);

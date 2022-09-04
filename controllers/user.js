@@ -167,6 +167,7 @@ exports.getPayments = async (req,res,next)=>{
             data: user.enrolledSubjects
         });
     }catch (error) {
+        console.log(error)
         next(error);
     }
 };

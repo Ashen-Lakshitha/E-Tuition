@@ -586,7 +586,8 @@ exports.deleteSubject = async (req,res,next)=>{
         }
 
         var lms = await Lms.find({subject: req.params.subjectid});
-        if(lms){
+        console.log(lms)
+        if(lms.length != 0){
             lms.forEach(async (element) => {
                 element.content.forEach(async (doc) => {
                     if(doc['uploadType'] == 'assignments'){
@@ -597,9 +598,9 @@ exports.deleteSubject = async (req,res,next)=>{
                         await Quiz.findOneAndDelete({subject: doc['_id']});
                     }
                 });
+                await element.remove();
             });
 
-            await lms.remove();
         }
 
         await Review.findOneAndDelete({subject: req.params.subjectid});

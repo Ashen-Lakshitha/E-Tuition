@@ -19,6 +19,7 @@ const lmsSchema = new mongoose.Schema({
                 webViewLink : String,
                 webContentLink : String
             },
+            dueDate: String,
             name: String,
             quiz: {
                 type: mongoose.Schema.ObjectId,
