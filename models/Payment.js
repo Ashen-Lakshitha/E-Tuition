@@ -5,7 +5,7 @@ const paymentSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'Subject',
     },
-    studenet: {
+    student: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
     },

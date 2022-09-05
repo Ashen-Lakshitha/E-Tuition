@@ -36,7 +36,7 @@ exports.myChats = async(req,res,next)=>{
 exports.createChat =  async(req,res,next)=>{
     try{
         if(req.user.role == 'student'){
-            const chat = await Message.findOne({subject: req.params.subjectid, student: req.user._id});
+            const chat = await Message.findOne({teacher: req.params.userid, student: req.user._id});
             if(chat == null){
                 try {
                     const subject = await Subject.findById(req.params.subjectid);
@@ -65,8 +65,9 @@ exports.createChat =  async(req,res,next)=>{
                 }
             }
         }else{
-            const chat = await Message.findOne({subject: req.params.subjectid, teacher: req.user._id});
-            if(chat == null){
+            const chat = await Message.findOne({student: req.params.userid, teacher: req.user._id});
+            console.log(chat);
+            if(!chat){
                 try {
                     const subject = await Subject.findById(req.params.subjectid);
                     req.body.teacher = req.user._id;
@@ -104,7 +105,7 @@ exports.createChat =  async(req,res,next)=>{
 exports.viewUniqueChat = async (req,res,next)=>{ 
     try{ 
         if(req.user.role == "student"){
-            const chat = await Message.findOne({subject: req.params.subjectid, student: req.user._id}).populate({
+            const chat = await Message.findOne({teacher: req.params.userid, student: req.user._id}).populate({
                 path: 'teacher',
                 select: 'name'
             });
@@ -119,7 +120,7 @@ exports.viewUniqueChat = async (req,res,next)=>{
             })
             
         }else{
-            const chat = await Message.findOne({subject: req.params.subjectid, teacher: req.user._id}).populate({
+            const chat = await Message.findOne({student: req.params.userid, teacher: req.user._id}).populate({
                 path: 'student',
                 select: 'name'
             });

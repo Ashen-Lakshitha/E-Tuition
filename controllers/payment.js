@@ -1,7 +1,7 @@
 const Payment = require('../models/Payment');
 const Lms = require('../models/Lms');
 const User = require('../models/User');
-const Submission = require('../models/Submission');
+const Subject = require('../models/Subject');
 const Quiz = require('../models/Quiz');
 const Review = require('../models/Review');
 const ErrorResponse = require('../utils/errorResponse');
@@ -14,7 +14,10 @@ const {uploadFiles, deleteFile} = require('../utils/service');
 //Private teacher only
 exports.getPayments = async (req,res,next)=>{
     try {
-        let payments = await Payment.find({subject: req.params.subjectid});
+        let payments = await Payment.find({subject: req.params.subjectid}).populate({
+            path: 'student',
+            select: 'name email photo '      
+        });
         
         res.status(200).json({
             success: true, 
@@ -60,14 +63,14 @@ exports.pay = async (req,res,next)=>{
             var webViewLink = result.res['webViewLink'];
             var webContentLink = result.res['webContentLink'];
 
-            req.body.post = {
+            req.body.document = {
                 id,
                 name,
                 mimeType,
                 webViewLink,
                 webContentLink
             };
-            req.body.student = req.user.id;
+            req.body.student = req.user._id;
             req.body.subject = req.params.subjectid;
         }
         await Payment.create(req.body);
@@ -77,6 +80,7 @@ exports.pay = async (req,res,next)=>{
         });
 
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };
