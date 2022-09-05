@@ -15,7 +15,7 @@ router.route('/')
     .get(protect, myChats);
 
 router
-    .route('/viewchat')
+    .route('/viewchat/:userid')
     .get(protect,viewUniqueChat);
 
 router.route('/mychats/:userid')

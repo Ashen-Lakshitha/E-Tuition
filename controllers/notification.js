@@ -2,7 +2,7 @@ const { TokenExpiredError } = require("jsonwebtoken");
 const Notification = require("../models/notification");
 const ErrorResponse = require('../utils/errorResponse');
 
-//GET get all notification for a teacher
+//GET get all notification for a subject
 //URL /notification
 //GET get all notification for a subject
 //URL subject/:subjectid/notification
@@ -10,21 +10,24 @@ const ErrorResponse = require('../utils/errorResponse');
 exports.viewNotifications = async (req, res, next) => {
     try {
      if(req.params.subjectid){
-       const notificationList = await Notification.findOne({subjectid: req.params.subjectid});
-        if(notificationList){
-            res.status(200).json({
-                success: true,
-                data: notificationList.notifications
-             });
+        if(req.user.role == 'teacher'){
+            const notificationList = await Notification.findOne({subjectId: req.params.subjectid});
+            if(notificationList){
+                res.status(200).json({
+                    success: true,
+                    data: notificationList.notifications
+                });
+            }else{
+                res.status(200).json({
+                    success: true,
+                    data: []
+                });
+            }
         }else{
-            res.status(200).json({
-                success: true,
-                data: []
-             });
         }
     }else{
         if(req.user.role == "teacher"){
-            const notificationList = await Notification.findOne({teacherid: req.user.id});
+            const notificationList = await Notification.findOne({teacherId: req.user.id});
 
             res.status(200).json({
            success: true,
